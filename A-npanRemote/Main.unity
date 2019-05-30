@@ -557,7 +557,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Enter Editor URL. ws://X:Y...
+  m_Text: Enter Editor IP. e,g, 192.168.0.1
 --- !u!222 &911961154
 CanvasRenderer:
   m_ObjectHideFlags: 0
