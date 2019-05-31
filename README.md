@@ -1,10 +1,10 @@
 # A-npanRemote
-ARKit reomte kit for Unity.  
-enable to connect iOS device and Unity Editor.  
+ARKit parameter streaming kit for Unity.  
+enable to receive ARKit parameter from iOS device to Unity Editor easily.  
 
 
 ## install
-1. copy the top-level A-npanRemote folder into your Asset/ folder.  
+1. copy this repository folder into your Asset/ folder.  
 (unitypackage is no ready yet.)
 
 
