@@ -160,7 +160,6 @@ public class ARFaceTracking : RemoteBase, IDisposable
         {
             if (disposing)
             {
-                Debug.Log("disposeしてる");
                 _session?.Pause();
 
                 _this = new ARFaceTracking();
@@ -171,7 +170,6 @@ public class ARFaceTracking : RemoteBase, IDisposable
                 _faceRemoved = (x) => { };
 
                 _state = TrackingState.DISPOSED;
-                Debug.Log("dispose done");
             }
 
             // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.

@@ -10,6 +10,7 @@ public class A_npanRemote : IDisposable
     private WebuSocket ws = null;
     private static A_npanRemote _this;
 
+    [System.Diagnostics.Conditional("REMOTE")]
     public static void Setup<T>(string ip, RemoteBase basement, Action<T> onData) where T : IRemotePayload
     {
 #if UNITY_EDITOR
@@ -37,7 +38,7 @@ public class A_npanRemote : IDisposable
             実機であればonDataが呼ばれた時に、データを送り出す。
             basementインスタンスのOnDataメソッドに対して、送信ブロックを生成する。
          */
-        basement.OnData = payload =>
+        basement._onData = payload =>
         {
             onData((T)payload);
 

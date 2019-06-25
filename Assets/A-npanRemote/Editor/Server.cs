@@ -125,7 +125,6 @@ public class Server
                 {
                     socket.OnOpen = () =>
                     {
-                        Debug.Log("a:" + socket.ConnectionInfo.ClientIpAddress);
                         if (socket.ConnectionInfo.Headers.ContainsKey("receiver"))
                         {
                             localSocket = socket;

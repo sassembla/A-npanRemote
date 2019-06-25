@@ -3,3 +3,8 @@ Library/*
 Temp/*
 Assets/A-npanRemote/Editor/src/*
 Assets/.DS_Store
+A-npanRemote.sln
+Assembly-CSharp-Editor.csproj
+Assembly-CSharp.csproj
+obj/Debug/Assembly-CSharp-Editor.csproj.CoreCompileInputs.cache
+obj/Debug/Assembly-CSharp.csproj.CoreCompileInputs.cache
