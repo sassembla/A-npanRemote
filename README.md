@@ -1,15 +1,17 @@
+
 # A-npanRemote
 ARKit parameter streaming kit for Unity.  
 enable to receive ARKit parameter from iOS device to Unity Editor easily.  
 
 
-## example usage
+## example(ARKitFaceTracking) usage
 
 1. add https://github.com/statianzo/Fleck src folder into Assets/A-npanRemote/A-npanRemote/Editor.
-1. build iOS project then install app into your iOS device.
-1. play ARFaceTrackingSample/ARFaceTrackingSampleScene.unity scene in Unity Editor
-1. play iOS app on device. then input PC's IP such as 192.168.1.11 into iOS app's input field and hit Connect button. 
-so now you can receive Face tracking data on your Unity Editor.
+1. build iOS project and install it into your iOS device.
+1. play __Assets/ARFaceTrackingSample/ARFaceTrackingSampleScene.unity__ scene in Unity Editor
+1. play iOS app on device. then input PC's IP such as 192.168.1.11 into input field and hit Connect button. 
+
+so now you can receive Face tracking data on your Unity Editor from the iOS device.
 
 
 ## installation
@@ -26,16 +28,10 @@ step is below.
 
 1. make your own sencing system. e,g, FaceTracking, VR head & hand position tracking.
 2. extend your system by extends __RemoteBase__ class. this allow to call __OnData__ method.
-3. call __OnData__ method where your system is receiving data from data source. [see example.](https://github.com/sassembla/A-npanRemote/blob/master/Assets/ARFaceTrackingSample/ARFaceTracking.cs#L37)
+3. call __OnData__ method where your system is receiving data from data source. [see example.](https://github.com/sassembla/A-npanRemote/blob/master/Assets/ARFaceTrackingSample/ARFaceTracking.cs#L84) 
+4. call A_npanRemote.Setup method on your project. [see example.](https://github.com/sassembla/A-npanRemote/blob/master/Assets/ARFaceTrackingSample/ARFaceTrackingSample.cs#L34)
+
+on step 4, this block of code can be delete when debugging or developing is well enough.
 
 ## license
 MIT
-
-
-```mermaid
-graph LR
-A[Square Rect] -- Link text --> B((Circle))
-A --> C(Round Rect)
-B --> D{Rhombus}
-C --> D
-```
