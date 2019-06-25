@@ -3,31 +3,39 @@ ARKit parameter streaming kit for Unity.
 enable to receive ARKit parameter from iOS device to Unity Editor easily.  
 
 
-## install
+## example usage
 
-under construction again!
-
-
-1. copy this repository folder into your Asset/ folder.  
-(unitypackage is no ready yet.)
-
-
-ready for UnityEditor App:
-1. download https://github.com/statianzo/Fleck and move it's src folder into Assets/A-npanRemote/A-npanRemote/Editor.
-2. Write ARKit code like example implementation (https://github.com/sassembla/A-npanRemote/blob/master/Receiver.cs)
+1. add https://github.com/statianzo/Fleck src folder into Assets/A-npanRemote/A-npanRemote/Editor.
+1. build iOS project then install app into your iOS device.
+1. play ARFaceTrackingSample/ARFaceTrackingSampleScene.unity scene in Unity Editor
+1. play iOS app on device. then input PC's IP such as 192.168.1.11 into iOS app's input field and hit Connect button. 
+so now you can receive Face tracking data on your Unity Editor.
 
 
-ready for iOS App:
-1. open Assets/A-npanRemote/A-npanRemote/Main.unity scene.
-2. set this scene to buildSettings.
-3. build iOS app.
+## installation
+unitypackage is not ready yet. copy A-npan remote folder manually.
+
+1. copy Assets/A-npanRemote folder into your Project.
+2. write your own remote receiving feature like the ARFaceTrackingSample. see __extend__.
 
 
-## usage
+## extend
+A-npanRemote is easy to extend for other remote system. like VR.
 
-start Play in Unity Editor.  
-when you reached to ARKit using scene, run iOS App and input IP of Editor PC then push Connect button.
+step is below.
 
+1. make your own sencing system. e,g, FaceTracking, VR head & hand position tracking.
+2. extend your system by extends __RemoteBase__ class. this allow to call __OnData__ method.
+3. call __OnData__ method where your system is receiving data from data source. [see example.](https://github.com/sassembla/A-npanRemote/blob/master/Assets/ARFaceTrackingSample/ARFaceTracking.cs#L37)
 
 ## license
 MIT
+
+
+```mermaid
+graph LR
+A[Square Rect] -- Link text --> B((Circle))
+A --> C(Round Rect)
+B --> D{Rhombus}
+C --> D
+```
