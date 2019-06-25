@@ -7,5 +7,4 @@ EditorBuildSettings:
   m_Scenes:
   - enabled: 1
     path: Assets/ARFaceTrackingSampleScene.unity
-    guid: 9dc7460ceaac24e9f9435e0301aa67b4
-  m_configObjects: {}
+    guid: 2d94d1aaad054488eaf554c36b3b856a
