@@ -1,5 +1,6 @@
 
 
+
 # A-npanRemote
 
 ARKit parameter streaming kit for Unity.  
@@ -35,6 +36,41 @@ step is below.
 1. call __OnData__ method where your system is receiving data from data source. [see example.](https://github.com/sassembla/A-npanRemote/blob/master/Assets/ARFaceTrackingSample/ARFaceTracking.cs#L84) 
 1. call A_npanRemote.Setup method on your project. [see example.](https://github.com/sassembla/A-npanRemote/blob/master/Assets/ARFaceTrackingSample/ARFaceTrackingSample.cs#L34)
 
+```csharp
+var validInput = "Unity Editor IP(x.x.x.x)";
+
+// init facetracking.
+var fTrack = new ARFaceTracking();
+fTrack.StartTracking(
+    () =>
+    {
+    },
+    (faceMat4x4, faceBlendShapes, cameraPosAndRot) =>
+    {
+        OnFaceTrackingDataReceived(faceMat4x4, faceBlendShapes, cameraPosAndRot);
+    }
+);
+
+var faceBlendShapeDict = new Dictionary<string, float>();
+
+// these block will be disappeared when "REMOTE" scriptingDefineSymbol is removed. 
+A_npanRemote.Setup<FaceTrackingPayload>(
+    validInput,
+    fTrack,
+    data =>
+    {
+        faceBlendShapeDict.Clear();
+        for (var i = 0; i < data.keys.Length; i++)
+        {
+            faceBlendShapeDict[data.keys[i]] = data.values[i];
+        }
+        OnFaceTrackingDataReceived(data.faceMat4x4, faceBlendShapeDict, data.cameraPosAndRot);
+    }
+);
+```
+
+## disable
+remote "REMOTE" 
 
 ## license
 MIT
