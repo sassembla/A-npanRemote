@@ -276,7 +276,7 @@ namespace WebuSocketCore
                                     this.endPoint = new IPEndPoint(ipaddress, port);
                                     StartConnectAsync();
                                     return;
-                                }
+                                }	
                             }
 
                             if (OnError != null)
@@ -1119,7 +1119,7 @@ namespace WebuSocketCore
             return new WebuSocketResults(receivedDataSegments, lastDataEnd);
         }
 
-        public struct WebuSocketResults
+        private struct WebuSocketResults
         {
             public Queue<ArraySegment<byte>> segments;
             public int lastDataTail;

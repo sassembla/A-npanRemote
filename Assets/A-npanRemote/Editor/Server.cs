@@ -116,7 +116,6 @@ public class Server
     {
         try
         {
-            var first = true;
             var count = 0;
             IWebSocketConnection localSocket = null;
             var server = new WebSocketServer("ws://0.0.0.0:1129");

@@ -49,7 +49,6 @@ public class A_npanRemote : IDisposable
         };
 
         var url = "ws://" + ip + ":1129";
-        Debug.Log("url:" + url);
 
         ws = new WebuSocket(
             url,

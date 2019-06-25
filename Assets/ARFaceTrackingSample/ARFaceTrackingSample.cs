@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 
@@ -6,13 +8,18 @@ public class ARFaceTrackingSample : MonoBehaviour
 {
     private ARFaceTracking arFaceTracking;
 
+
     public void Connect(TextMeshProUGUI textHolder)
     {
+        // 精査してアルファベットと数字と.だけを通す(変な制御文字が入る)
+        var validInput = new string(textHolder.text.Where(c => char.IsLetter(c) || char.IsDigit(c) || c == '.').ToArray());
         var fTrack = new ARFaceTracking();
 
         // 普通に開始させる
         fTrack.StartTracking(
-            () => { },
+            () =>
+            {
+            },
             (faceMat4x4, faceBlendShapes, cameraPosAndRot) =>
             {
                 // 受け取ってから普通に何かするルート、コードを書いておく。
@@ -22,11 +29,10 @@ public class ARFaceTrackingSample : MonoBehaviour
 
         // このブロックはデバッグや調整、制作が完了したらまるっと消せる。
         {
-            Debug.Log("textHolder.text:" + textHolder.text);
             var faceBlendShapeDict = new Dictionary<string, float>();
 
             A_npanRemote.Setup<FaceTrackingPayload>(
-                textHolder.text,
+                validInput,
                 fTrack,
                 data =>
                 {
@@ -46,7 +52,7 @@ public class ARFaceTrackingSample : MonoBehaviour
 
     private void OnFaceTrackingDataReceived(Matrix4x4 faceMat, Dictionary<string, float> face, PosAndRot cameraPosAndRot)
     {
-        Debug.Log("到達してる");
+        // Debug.Log("到達してる");
     }
 
     void OnDestroy()

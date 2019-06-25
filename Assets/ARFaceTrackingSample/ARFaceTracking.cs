@@ -47,10 +47,20 @@ public class ARFaceTracking : RemoteBase, IDisposable
     private UnityARSessionNativeInterface _session;
     private static ARFaceTracking _this;
 
-    private Action<ARFaceAnchor> _faceAdded;
-    private Action<ARFaceAnchor> _faceUpdated;
-    private Action<ARFaceAnchor> _faceRemoved;
-    private Action<UnityARCamera> _frameUpdated;
+
+    private Action<UnityARCamera> _frameUpdated = x => { };
+    private Action<ARFaceAnchor> _faceAdded = x => { };
+    private Action<ARFaceAnchor> _faceUpdated = x => { };
+    private Action<ARFaceAnchor> _faceRemoved = x => { };
+
+
+    static ARFaceTracking()
+    {
+        UnityARSessionNativeInterface.ARFaceAnchorAddedEvent += FaceAdded;
+        UnityARSessionNativeInterface.ARFaceAnchorUpdatedEvent += FaceUpdated;
+        UnityARSessionNativeInterface.ARFaceAnchorRemovedEvent += FaceRemoved;
+        UnityARSessionNativeInterface.ARFrameUpdatedEvent += FrameUpdated;
+    }
 
 
     public void StartTracking(
@@ -58,20 +68,12 @@ public class ARFaceTracking : RemoteBase, IDisposable
         Action<Matrix4x4, Dictionary<string, float>, PosAndRot> OnTrackingUpdate
     )
     {
-        Debug.Log("StartTracking");
         _this = this;
 
-        UnityARSessionNativeInterface.ARFaceAnchorAddedEvent += FaceAdded;
-        UnityARSessionNativeInterface.ARFaceAnchorUpdatedEvent += FaceUpdated;
-        UnityARSessionNativeInterface.ARFaceAnchorRemovedEvent += FaceRemoved;
-        UnityARSessionNativeInterface.ARFrameUpdatedEvent += FrameUpdated;
-        Debug.Log("StartTracking2");
         _frameUpdated = x =>
         {
             // 自身の再度実行を防ぐ
             _frameUpdated = x2 => { };
-
-            Debug.Log("StartTracking3");
 
             OnStartTracking();
 
@@ -86,6 +88,7 @@ public class ARFaceTracking : RemoteBase, IDisposable
                 OnTrackingUpdate(p.transform, p.blendShapes, GetCameraPosAndRot());
                 OnData(new FaceTrackingPayload(p.transform, p.blendShapes, GetCameraPosAndRot()));
             };
+            _faceRemoved = p => { };
         };
 
         if (_state == TrackingState.RUNNING)
@@ -99,14 +102,9 @@ public class ARFaceTracking : RemoteBase, IDisposable
         config.enableLightEstimation = false;
         if (config.IsSupported)
         {
-            Debug.Log("StartTracking5");
             _session = UnityARSessionNativeInterface.GetARSessionNativeInterface();
-            Debug.Log("StartTracking6");
             _session.RunWithConfig(config);
-            Debug.Log("StartTracking7");
         }
-
-        Debug.Log("StartTracking8");
 
         _state = TrackingState.RUNNING;
     }
@@ -116,6 +114,7 @@ public class ARFaceTracking : RemoteBase, IDisposable
         _frameUpdated = x => { };
         _faceAdded = p => { };
         _faceUpdated = p => { };
+        _faceRemoved = p => { };
     }
 
 
@@ -161,19 +160,18 @@ public class ARFaceTracking : RemoteBase, IDisposable
         {
             if (disposing)
             {
+                Debug.Log("disposeしてる");
+                _session?.Pause();
+
+                _this = new ARFaceTracking();
+
+                _frameUpdated = (x) => { };
                 _faceAdded = (x) => { };
                 _faceUpdated = (x) => { };
                 _faceRemoved = (x) => { };
-                _frameUpdated = (x) => { };
-
-                UnityARSessionNativeInterface.ARFaceAnchorAddedEvent -= FaceAdded;
-                UnityARSessionNativeInterface.ARFaceAnchorUpdatedEvent -= FaceUpdated;
-                UnityARSessionNativeInterface.ARFaceAnchorRemovedEvent -= FaceRemoved;
-                UnityARSessionNativeInterface.ARFrameUpdatedEvent -= FrameUpdated;
-
-                _session?.Pause();
 
                 _state = TrackingState.DISPOSED;
+                Debug.Log("dispose done");
             }
 
             // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
