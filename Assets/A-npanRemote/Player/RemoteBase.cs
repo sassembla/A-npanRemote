@@ -1,6 +1,18 @@
 using System;
+using UnityEngine;
 
 public class RemoteBase
+{
+    [System.Diagnostics.Conditional("REMOTE")]
+    public void OnData(IRemotePayload data)
+    {
+        _onData(data);
+    }
+
+    public Action<IRemotePayload> _onData = p => { };
+}
+
+public class RemoteMonoBehaviourBase : MonoBehaviour
 {
     [System.Diagnostics.Conditional("REMOTE")]
     public void OnData(IRemotePayload data)

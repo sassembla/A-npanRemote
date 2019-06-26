@@ -24,6 +24,19 @@ public class A_npanRemote : IDisposable
 #endif
     }
 
+    public static void Setup<T>(string ip, RemoteMonoBehaviourBase basement, Action<T> onData) where T : IRemotePayload
+    {
+#if UNITY_EDITOR
+        // エディタの場合、セットアップを行う。
+        _this = new A_npanRemote();
+        _this.SetupEditorConnection(onData);
+#else
+        // エディタ以外であれば、特定のIPへと接続を行う。
+        _this = new A_npanRemote();
+        _this.SetupRemoteConnection(ip, basement, onData);
+#endif
+    }
+
 
     public static void Teardown()
     {
@@ -40,7 +53,51 @@ public class A_npanRemote : IDisposable
          */
         basement._onData = payload =>
         {
-            onData((T)payload);
+            // onData((T)payload);
+
+            if (connected)
+            {
+                var json = JsonUtility.ToJson(payload);
+                ws.Send(Encoding.UTF8.GetBytes(json));
+            }
+        };
+
+        var url = "ws://" + ip + ":1129";
+
+        ws = new WebuSocket(
+            url,
+            1024,
+            () =>
+            {
+                connected = true;
+            },
+            segments =>
+            {
+                // データを受け取ったのでなんかする。
+            },
+            () => { },
+            closedEnum =>
+            {
+                Debug.Log("closedEnum:" + closedEnum);
+            },
+            (error, reason) =>
+            {
+                Debug.Log("e:" + error + " reason:" + reason);
+            }
+        );
+    }
+
+    private void SetupRemoteConnection<T>(string ip, RemoteMonoBehaviourBase basement, Action<T> onData) where T : IRemotePayload
+    {
+        var connected = false;
+
+        /*
+            実機であればonDataが呼ばれた時に、データを送り出す。
+            basementインスタンスのOnDataメソッドに対して、送信ブロックを生成する。
+         */
+        basement._onData = payload =>
+        {
+            // onData((T)payload);
 
             if (connected)
             {
