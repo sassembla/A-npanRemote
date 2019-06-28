@@ -8,10 +8,9 @@ public class ARFaceTrackingSample : MonoBehaviour
     private ARFaceTracking arFaceTracking;
 
 
-    public void Connect(TextMeshProUGUI textHolder)
+    public void Connect(TMP_InputField textHolder)
     {
-        // 精査してアルファベットと数字と.だけを通す(変な制御文字が入る)
-        var validInput = new string(textHolder.text.Where(c => char.IsLetter(c) || char.IsDigit(c) || c == '.').ToArray());
+        var validInput = textHolder.text;
         var fTrack = new ARFaceTracking();
 
         // 普通に開始させる

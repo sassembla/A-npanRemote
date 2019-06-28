@@ -906,8 +906,8 @@ MonoBehaviour:
         m_MethodName: Connect
         m_Mode: 2
         m_Arguments:
-          m_ObjectArgument: {fileID: 1981626035}
-          m_ObjectArgumentAssemblyTypeName: TMPro.TextMeshProUGUI, Unity.TextMeshPro
+          m_ObjectArgument: {fileID: 374883695}
+          m_ObjectArgumentAssemblyTypeName: TMPro.TMP_InputField, Unity.TextMeshPro
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
