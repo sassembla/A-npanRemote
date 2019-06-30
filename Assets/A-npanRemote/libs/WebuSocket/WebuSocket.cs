@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using UnityEngine;
 
 namespace WebuSocketCore
 {
@@ -276,7 +277,7 @@ namespace WebuSocketCore
                                     this.endPoint = new IPEndPoint(ipaddress, port);
                                     StartConnectAsync();
                                     return;
-                                }	
+                                }
                             }
 
                             if (OnError != null)
@@ -359,6 +360,7 @@ namespace WebuSocketCore
         private byte[] webSocketHandshakeResult;
         private void OnConnect(object unused, SocketAsyncEventArgs args)
         {
+            Debug.Log("connect!");
             var token = (SocketToken)args.UserToken;
             switch (token.socketState)
             {
@@ -483,10 +485,12 @@ namespace WebuSocketCore
                 case SocketError.Success:
                     {
                         // do nothing.
+                        Debug.Log("送り出した");
                         break;
                     }
                 default:
                     {
+                        Debug.Log("送り出したエラー:" + socketError.ToString());
                         if (OnError != null)
                         {
                             var error = new Exception("send error:" + socketError.ToString());
@@ -881,7 +885,7 @@ namespace WebuSocketCore
 
         public static byte ByteCR = Convert.ToByte('\r');
         public static byte ByteLF = Convert.ToByte('\n');
-        public static int ReadUpgradeLine(byte[] bytes, int cursor, long length)
+        private int ReadUpgradeLine(byte[] bytes, int cursor, long length)
         {
             while (cursor < length)
             {
@@ -899,7 +903,7 @@ namespace WebuSocketCore
         }
 
 
-        private class SwitchingProtocolData
+        public class SwitchingProtocolData
         {
             // HTTP/1.1 101 Switching Protocols
             // Server: nginx/1.7.10
@@ -934,7 +938,6 @@ namespace WebuSocketCore
                     if (!line.Contains(": ")) continue;
 
                     var keyAndValue = line.Replace(": ", ":").Split(':');
-
                     switch (keyAndValue[0].ToLower())
                     {
                         case "server":

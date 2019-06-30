@@ -34,7 +34,7 @@ public class VRTrackingSample : MonoBehaviour
     private VRTracking vrTracking;
 
     // Start is called before the first frame update
-    private void Start()
+    private IEnumerator Start()
     {
         var go = new GameObject("core");
         vrTracking = go.AddComponent<VRTracking>();
@@ -45,6 +45,8 @@ public class VRTrackingSample : MonoBehaviour
                 OnTrackingMove(data);
             }
         );
+
+        yield return new WaitForSeconds(1);
 
         A_npanRemote.Setup<VRTrackingPayload>(
             "192.168.11.17",

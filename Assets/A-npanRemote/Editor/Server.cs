@@ -1,14 +1,9 @@
 using UnityEngine;
-using System.Net.WebSockets;
-using System.Net;
 using Fleck;
-using System.Collections.Generic;
 using System;
 using UnityEditor;
-using System.Text;
-using System.Net.Sockets;
-using System.Threading;
 using System.IO;
+using WebuSocketCore.Server;
 
 [InitializeOnLoad]
 public class Server
@@ -114,47 +109,52 @@ public class Server
 
     private static Action StartServer()
     {
+        // がんばって書くか。
+        var server = new WebuSocketServer(
+            1129
+        );
+
         try
         {
             var count = 0;
-            IWebSocketConnection localSocket = null;
-            var server = new WebSocketServer("ws://0.0.0.0:1129");
-            FleckLog.Level = LogLevel.Info;
-            server.Start(
-                socket =>
-                {
-                    socket.OnOpen = () =>
-                    {
-                        if (socket.ConnectionInfo.Headers.ContainsKey("receiver"))
-                        {
-                            localSocket = socket;
-                        }
-                        else
-                        {
-                            remoteSocket = socket;
-                        }
-                    };
-                    socket.OnBinary = message =>
-                    {
-                        if (socket == localSocket)
-                        {
-                            remoteSocket?.Send(message);
-                            return;
-                        }
+            // IWebSocketConnection localSocket = null;
+            // var server = new WebSocketServer("ws://0.0.0.0:1129");
+            // FleckLog.Level = LogLevel.Info;
+            // server.Start(
+            //     socket =>
+            //     {
+            //         socket.OnOpen = () =>
+            //         {
+            //             if (socket.ConnectionInfo.Headers.ContainsKey("receiver"))
+            //             {
+            //                 localSocket = socket;
+            //             }
+            //             else
+            //             {
+            //                 remoteSocket = socket;
+            //             }
+            //         };
+            //         socket.OnBinary = message =>
+            //         {
+            //             if (socket == localSocket)
+            //             {
+            //                 remoteSocket?.Send(message);
+            //                 return;
+            //             }
 
-                        localSocket?.Send(message);
+            //             localSocket?.Send(message);
 
-                        count++;
+            //             count++;
 
-                        // データがきたタイミングでフレームがいい感じだったらスクショを送り出す
-                        if (count % 10 == 0)
-                        {
-                            shot = true;
-                            count = 0;
-                        }
-                    };
-                }
-            );
+            //             // データがきたタイミングでフレームがいい感じだったらスクショを送り出す
+            //             if (count % 10 == 0)
+            //             {
+            //                 shot = true;
+            //                 count = 0;
+            //             }
+            //         };
+            //     }
+            // );
 
             Action serverStop = () =>
             {

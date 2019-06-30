@@ -179,8 +179,14 @@ public class A_npanRemote : IDisposable
                 }
             },
             () => { },
-            closedEnum => { },
-            (error, reason) => { },
+            closedEnum =>
+            {
+                Debug.Log("closedEnum:" + closedEnum);
+            },
+            (error, reason) =>
+            {
+                Debug.Log("error:" + error + " reason:" + reason);
+            },
             new Dictionary<string, string> { { "receiver", "" } }
         );
     }
