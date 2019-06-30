@@ -51,46 +51,14 @@ public class Server
 
             if (serverState == ServerState.Running)
             {
-                if (true)
+                return;
+                var tex = ScreenCapture.CaptureScreenshotAsTexture();
+                var jpgBytes = tex.EncodeToJPG(10);// 90KB
+                using (var sw = new StreamWriter(fileName))
                 {
-                    return;
+                    sw.BaseStream.Write(jpgBytes, 0, jpgBytes.Length);
                 }
-
-                if (true)
-                {
-                    // 作ってみたけどクッソ重い。うーん。CaptureScreenshotAsTextureがバグっているのが悪い。
-                    if (waitingStored)
-                    {
-                        waitingStored = false;
-                        using (var sr = new StreamReader(fileName))
-                        {
-                            var buffer = new byte[sr.BaseStream.Length];
-                            sr.BaseStream.Read(buffer, 0, buffer.Length);
-                            // Debug.Log("buffer:" + buffer.Length);// この時点で1.995mBもあるので、jpgに変換する。
-
-                            jpgTex.LoadImage(buffer);
-                            var jpgBytes = jpgTex.EncodeToJPG(10);// 90KB
-                            remoteSocket?.Send(jpgBytes);
-                        }
-                        File.Delete(fileName);
-                    }
-                    if (shot)
-                    {
-                        shot = false;
-                        ScreenCapture.CaptureScreenshot(fileName);
-                        waitingStored = true;
-                    }
-                }
-                else
-                {
-                    var tex = ScreenCapture.CaptureScreenshotAsTexture();
-                    var jpgBytes = tex.EncodeToJPG(10);// 90KB
-                    using (var sw = new StreamWriter(fileName))
-                    {
-                        sw.BaseStream.Write(jpgBytes, 0, jpgBytes.Length);
-                    }
-                    remoteSocket?.Send(jpgBytes);
-                }
+                remoteSocket?.Send(jpgBytes);
             }
 
         };
@@ -109,9 +77,16 @@ public class Server
 
     private static Action StartServer()
     {
-        // がんばって書くか。
         var server = new WebuSocketServer(
-            1129
+            1129,
+            newConnection =>
+            {
+                Debug.Log("接続きた。" + newConnection.RequestHeaderDict.Count);
+                newConnection.OnMessage = datas =>
+                {
+                    Debug.Log("データきた");
+                };
+            }
         );
 
         try

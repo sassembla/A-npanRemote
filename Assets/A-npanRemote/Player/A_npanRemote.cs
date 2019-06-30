@@ -163,7 +163,11 @@ public class A_npanRemote : IDisposable
         ws = new WebuSocket(
             "ws://" + "127.0.0.1" + ":1129",
             1024,
-            () => { },
+            () =>
+            {
+                Debug.Log("送ってる");
+                ws.Send(new byte[] { 1 });
+            },
             segments =>
             {
                 // データを受け取った。受け取りは非メインスレッドなので、メインスレッドに転送する必要がある。
