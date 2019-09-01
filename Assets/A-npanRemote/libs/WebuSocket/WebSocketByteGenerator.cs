@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using UnityEngine;
 
 namespace WebuSocketCore
 {
@@ -35,30 +36,30 @@ namespace WebuSocketCore
 
         public const byte OPFilter = 0xF;// 1111
 
-        public static byte[] Ping(byte[] data = null)
+        public static byte[] Ping(byte[] data = null, bool isClient = true)
         {
             if (data == null) data = new byte[0];
-            return WSDataFrame(1, 0, 0, 0, OP_PING, 1, data);
+            return WSDataFrame(1, 0, 0, 0, OP_PING, isClient, data);
         }
 
-        public static byte[] Pong(byte[] data = null)
+        public static byte[] Pong(byte[] data = null, bool isClient = true)
         {
             if (data == null) data = new byte[0];
-            return WSDataFrame(1, 0, 0, 0, OP_PONG, 1, data);
+            return WSDataFrame(1, 0, 0, 0, OP_PONG, isClient, data);
         }
 
-        public static byte[] SendTextData(byte[] data)
+        public static byte[] SendTextData(byte[] data, bool isClient = true)
         {
-            return WSDataFrame(1, 0, 0, 0, OP_TEXT, 1, data);
+            return WSDataFrame(1, 0, 0, 0, OP_TEXT, isClient, data);
         }
-        public static byte[] SendBinaryData(byte[] data)
+        public static byte[] SendBinaryData(byte[] data, bool isClient = true)
         {
-            return WSDataFrame(1, 0, 0, 0, OP_BINARY, 1, data);
+            return WSDataFrame(1, 0, 0, 0, OP_BINARY, isClient, data);
         }
 
-        public static byte[] CloseData()
+        public static byte[] CloseData(bool isClient = true)
         {
-            return WSDataFrame(1, 0, 0, 0, OP_CLOSE, 1, new byte[0]);
+            return WSDataFrame(1, 0, 0, 0, OP_CLOSE, isClient, new byte[0]);
         }
 
         private static byte[] WSDataFrame(
@@ -67,7 +68,7 @@ namespace WebuSocketCore
             byte rsv2,
             byte rsv3,
             byte opCode,
-            byte mask,
+            bool maskRequired,
             byte[] data)
         {
             uint length = (uint)(data.Length);
@@ -97,6 +98,7 @@ namespace WebuSocketCore
             using (var dataStream = new MemoryStream())
             {
                 dataStream.WriteByte((byte)((fin << 7) | (rsv1 << 6) | (rsv2 << 5) | (rsv3 << 4) | opCode));
+                var mask = maskRequired ? 1 : 0;
                 dataStream.WriteByte((byte)((mask << 7) | dataLength7bit));
 
                 // 126 ~ 65535.
@@ -127,22 +129,43 @@ namespace WebuSocketCore
                     dataStream.Write(intBytes, 0, intBytes.Length);
                 }
 
-                // client should mask control frame.
-                var maskKey = NewMaskKey();
-                dataStream.Write(maskKey, 0, maskKey.Length);
+                if (maskRequired)
+                {
+                    // client should mask control frame.
+                    var maskKey = NewMaskKey();
 
-                // mask data.
-                var maskedData = Masked(data, maskKey);
-                dataStream.Write(maskedData, 0, maskedData.Length);
+                    // insert mask key bytes.
+                    dataStream.Write(maskKey, 0, maskKey.Length);
+
+                    // mask data.
+                    var maskedData = Masked(data, maskKey);
+                    dataStream.Write(maskedData, 0, maskedData.Length);
+                }
+                else
+                {
+                    // server must not mask data.
+                    dataStream.Write(data, 0, data.Length);
+                }
 
                 return dataStream.ToArray();
             }
         }
 
+        /**
+            クライアント側はランダムに生成したマスクキーを元に、与えられたデータをマスク処理する。            
+         */
         private static byte[] Masked(byte[] data, byte[] maskKey)
         {
             for (var i = 0; i < data.Length; i++) data[i] ^= maskKey[i % 4];
             return data;
+        }
+
+        /**
+            サーバ側はデータのマスクを解除する。
+         */
+        public static void Unmasked(ref byte[] data, byte[] maskKey, int index, int length)
+        {
+            for (var i = index; i < index + length; i++) data[i] ^= maskKey[(i - index) % 4];
         }
 
         /**

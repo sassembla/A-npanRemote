@@ -74,6 +74,7 @@ public class A_npanRemote : IDisposable
             segments =>
             {
                 // データを受け取ったのでなんかする。
+                Debug.Log("きた");
             },
             () => { },
             closedEnum =>
@@ -165,8 +166,7 @@ public class A_npanRemote : IDisposable
             1024,
             () =>
             {
-                Debug.Log("送ってる");
-                ws.Send(new byte[] { 1 });
+                // do nothng.
             },
             segments =>
             {
@@ -191,7 +191,7 @@ public class A_npanRemote : IDisposable
             {
                 Debug.Log("error:" + error + " reason:" + reason);
             },
-            new Dictionary<string, string> { { "receiver", "" } }
+            new Dictionary<string, string> { { "local", "" } }
         );
     }
 

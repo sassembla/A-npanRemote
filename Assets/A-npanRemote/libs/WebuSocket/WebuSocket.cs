@@ -485,7 +485,6 @@ namespace WebuSocketCore
                 case SocketError.Success:
                     {
                         // do nothing.
-                        Debug.Log("送り出した");
                         break;
                     }
                 default:
@@ -1312,6 +1311,11 @@ namespace WebuSocketCore
             }
 
             var payloadBytes = WebSocketByteGenerator.SendBinaryData(data);
+            // for (var i = 0; i < Math.Min(payloadBytes.Length, 10); i++)
+            // {
+            //     Debug.Log("send i:" + payloadBytes[i]);
+            // }
+
 
             if (isWss)
             {

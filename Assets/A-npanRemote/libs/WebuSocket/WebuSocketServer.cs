@@ -121,7 +121,6 @@ namespace WebuSocketCore.Server
 
         private void OnReceived(object unused, SocketAsyncEventArgs args)
         {
-            Debug.Log("データきた");
             var token = (ServerSocketToken)args.UserToken;
 
             if (args.SocketError != SocketError.Success)
@@ -256,7 +255,7 @@ namespace WebuSocketCore.Server
 
                                 var acceptedSecret = WebSocketByteGenerator.GenerateExpectedAcceptedKey(clientSecret);
 
-                                // なんかレスポンスが必要なはず。
+                                // generate response.
                                 var responseStr =
 @"HTTP/1.1 101 Switching Protocols
 Server: webusocket
@@ -305,20 +304,22 @@ Sec-WebSocket-Accept: " + acceptedSecret + "\r\n\r\n";
 
                                             // ready for receiving websocket data.
                                             ReadyReceivingNewData(token);
+                                            return;
                                         }
-                                        else
-                                        {
-                                            wsBufLength = webSocketHandshakeResult.Length - afterHandshakeDataIndex;
+                                        Debug.Log("なんかよくわからんけどここにいる");
+                                        // else
+                                        // {
+                                        //     wsBufLength = webSocketHandshakeResult.Length - afterHandshakeDataIndex;
 
-                                            if (wsBuffer.Length < wsBufLength)
-                                            {
-                                                Array.Resize(ref wsBuffer, wsBufLength);
-                                            }
+                                        //     if (wsBuffer.Length < wsBufLength)
+                                        //     {
+                                        //         Array.Resize(ref wsBuffer, wsBufLength);
+                                        //     }
 
-                                            Buffer.BlockCopy(webSocketHandshakeResult, afterHandshakeDataIndex, wsBuffer, 0, wsBufLength);
+                                        //     Buffer.BlockCopy(webSocketHandshakeResult, afterHandshakeDataIndex, wsBuffer, 0, wsBufLength);
 
-                                            ReadBuffer(token);
-                                        }
+                                        //     ReadBuffer(token);
+                                        // }
                                     },
                                     socketToken.socket
                                 );
@@ -332,18 +333,16 @@ Sec-WebSocket-Accept: " + acceptedSecret + "\r\n\r\n";
                     }
                 case SocketState.OPENED:
                     {
+                        var additionalLen = args.BytesTransferred;
+
+                        if (wsBuffer.Length < wsBufIndex + additionalLen)
                         {
-                            var additionalLen = args.BytesTransferred;
-
-                            if (wsBuffer.Length < wsBufIndex + additionalLen)
-                            {
-                                Array.Resize(ref wsBuffer, wsBufIndex + additionalLen);
-                                // resizeイベント発生をどう出すかな〜〜
-                            }
-
-                            Buffer.BlockCopy(args.Buffer, 0, wsBuffer, wsBufIndex, additionalLen);
-                            wsBufLength = wsBufLength + additionalLen;
+                            Array.Resize(ref wsBuffer, wsBufIndex + additionalLen);
+                            // resizeイベント発生をどう出すかな〜〜
                         }
+
+                        Buffer.BlockCopy(args.Buffer, 0, wsBuffer, wsBufIndex, additionalLen);
+                        wsBufLength = wsBufLength + additionalLen;
 
                         ReadBuffer(token);
                         return;
@@ -392,7 +391,7 @@ Sec-WebSocket-Accept: " + acceptedSecret + "\r\n\r\n";
                 return;
             }
 
-            var payloadBytes = WebSocketByteGenerator.SendBinaryData(data);
+            var payloadBytes = WebSocketByteGenerator.SendBinaryData(data, false);
 
             {
                 try
@@ -457,7 +456,6 @@ Sec-WebSocket-Accept: " + acceptedSecret + "\r\n\r\n";
 
         private void ReadBuffer(ServerSocketToken token)
         {
-            Debug.Log("reading buffer.");
             var result = ScanBuffer(wsBuffer, wsBufLength);
 
             // read completed datas.
@@ -507,28 +505,23 @@ Sec-WebSocket-Accept: " + acceptedSecret + "\r\n\r\n";
 
         private Queue<ArraySegment<byte>> receivedDataSegments = new Queue<ArraySegment<byte>>();
         private byte[] continuationBuffer;
-        private int continuationBufferIndex;
-        private WebuSocketResults ScanBuffer(byte[] buffer, long bufferLength)
+        private int continuationBufferIndex = 0;
+        private WebuSocketResults ScanBuffer(byte[] encedBuffer, long bufferLength)
         {
-            Debug.Log("クライアントはマスクでデータを投げてくるので、それを読む必要がある。");
             receivedDataSegments.Clear();
 
             int cursor = 0;
             int lastDataEnd = 0;
             while (cursor < bufferLength)
             {
-
                 // first byte = fin(1), rsv1(1), rsv2(1), rsv3(1), opCode(4)
-                var opCode = (byte)(buffer[cursor++] & WebSocketByteGenerator.OPFilter);
+                var opCode = (byte)(encedBuffer[cursor++] & WebSocketByteGenerator.OPFilter);
 
                 // second byte = mask(1), length(7)
                 if (bufferLength < cursor) break;
 
-                /*
-					mask of data from server is definitely zero(0).
-					ignore reading mask bit.
-				*/
-                int length = buffer[cursor++];
+                // ignore mask bit.
+                int length = encedBuffer[cursor++] & 0x0111;
                 switch (length)
                 {
                     case 126:
@@ -537,8 +530,8 @@ Sec-WebSocket-Accept: " + acceptedSecret + "\r\n\r\n";
                             if (bufferLength < cursor + 2) break;
 
                             length = (
-                                (buffer[cursor++] << 8) +
-                                (buffer[cursor++])
+                                (encedBuffer[cursor++] << 8) +
+                                (encedBuffer[cursor++])
                             );
                             break;
                         }
@@ -548,14 +541,14 @@ Sec-WebSocket-Accept: " + acceptedSecret + "\r\n\r\n";
                             if (bufferLength < cursor + 8) break;
 
                             length = (
-                                (buffer[cursor++] << (8 * 7)) +
-                                (buffer[cursor++] << (8 * 6)) +
-                                (buffer[cursor++] << (8 * 5)) +
-                                (buffer[cursor++] << (8 * 4)) +
-                                (buffer[cursor++] << (8 * 3)) +
-                                (buffer[cursor++] << (8 * 2)) +
-                                (buffer[cursor++] << 8) +
-                                (buffer[cursor++])
+                                (encedBuffer[cursor++] << (8 * 7)) +
+                                (encedBuffer[cursor++] << (8 * 6)) +
+                                (encedBuffer[cursor++] << (8 * 5)) +
+                                (encedBuffer[cursor++] << (8 * 4)) +
+                                (encedBuffer[cursor++] << (8 * 3)) +
+                                (encedBuffer[cursor++] << (8 * 2)) +
+                                (encedBuffer[cursor++] << 8) +
+                                (encedBuffer[cursor++])
                             );
                             break;
                         }
@@ -565,6 +558,15 @@ Sec-WebSocket-Accept: " + acceptedSecret + "\r\n\r\n";
                             break;
                         }
                 }
+
+                // サーバ側はクライアントがセットしたdecKey分の4byteのデータを取り出す。
+                if (bufferLength < cursor + 4) break;
+
+                var decKey = new byte[4];
+                decKey[0] = encedBuffer[cursor++];
+                decKey[1] = encedBuffer[cursor++];
+                decKey[2] = encedBuffer[cursor++];
+                decKey[3] = encedBuffer[cursor++];
 
                 // read payload data.
                 if (bufferLength < cursor + length) break;
@@ -578,18 +580,26 @@ Sec-WebSocket-Accept: " + acceptedSecret + "\r\n\r\n";
                             if (continuationBuffer.Length <= continuationBufferIndex + length) Array.Resize(ref continuationBuffer, continuationBufferIndex + length);
 
                             // pool data to continuation buffer.
-                            Buffer.BlockCopy(buffer, cursor, continuationBuffer, continuationBufferIndex, length);
+                            WebSocketByteGenerator.Unmasked(ref encedBuffer, decKey, cursor, length);
+                            Buffer.BlockCopy(encedBuffer, cursor, continuationBuffer, continuationBufferIndex, length);
                             continuationBufferIndex += length;
                             break;
                         }
                     case WebSocketByteGenerator.OP_TEXT:
                     case WebSocketByteGenerator.OP_BINARY:
                         {
-                            if (continuationBufferIndex == 0) receivedDataSegments.Enqueue(new ArraySegment<byte>(buffer, cursor, length));
+                            if (continuationBufferIndex == 0)
+                            {
+                                // unmask enced buffer.
+                                WebSocketByteGenerator.Unmasked(ref encedBuffer, decKey, cursor, length);
+                                receivedDataSegments.Enqueue(new ArraySegment<byte>(encedBuffer, cursor, length));
+                            }
                             else
                             {
                                 if (continuationBuffer.Length <= continuationBufferIndex + length) Array.Resize(ref continuationBuffer, continuationBufferIndex + length);
-                                Buffer.BlockCopy(buffer, cursor, continuationBuffer, continuationBufferIndex, length);
+
+                                WebSocketByteGenerator.Unmasked(ref encedBuffer, decKey, cursor, length);
+                                Buffer.BlockCopy(encedBuffer, cursor, continuationBuffer, continuationBufferIndex, length);
                                 continuationBufferIndex += length;
 
                                 receivedDataSegments.Enqueue(new ArraySegment<byte>(continuationBuffer, 0, continuationBufferIndex));
@@ -612,7 +622,8 @@ Sec-WebSocket-Accept: " + acceptedSecret + "\r\n\r\n";
                             if (0 < length)
                             {
                                 var data = new byte[length];
-                                Buffer.BlockCopy(buffer, cursor, data, 0, length);
+                                WebSocketByteGenerator.Unmasked(ref encedBuffer, decKey, cursor, length);
+                                Buffer.BlockCopy(encedBuffer, cursor, data, 0, length);
                                 PingReceived(data);
                             }
                             else
@@ -623,20 +634,21 @@ Sec-WebSocket-Accept: " + acceptedSecret + "\r\n\r\n";
                         }
                     case WebSocketByteGenerator.OP_PONG:
                         {
-                            Debug.Log("pongきた");
-                            // /*
-                            //     if client sent pong with application data, open it.
-                            // */
-                            // if (0 < length)
-                            // {
-                            //     var data = new byte[length];
-                            //     Buffer.BlockCopy(buffer, cursor, data, 0, length);
-                            //     PongReceived(data);
-                            // }
-                            // else
-                            // {
-                            //     PongReceived();
-                            // }
+                            /*
+                                if client sent pong with application data, open it.
+                            */
+                            if (0 < length)
+                            {
+                                var data = new byte[length];
+                                WebSocketByteGenerator.Unmasked(ref encedBuffer, decKey, cursor, length);
+                                Buffer.BlockCopy(encedBuffer, cursor, data, 0, length);
+                                // PongReceived(data);
+                            }
+                            else
+                            {
+                                // PongReceived();
+                            }
+                            Debug.LogError("pong received, but unable to handle it now.");
                             break;
                         }
                     default:
@@ -670,14 +682,13 @@ Sec-WebSocket-Accept: " + acceptedSecret + "\r\n\r\n";
 
         private void ReadyReceivingNewData(ServerSocketToken token)
         {
-            Debug.Log("ReadyReceivingNewData");
             token.receiveArgs.SetBuffer(token.receiveBuffer, 0, token.receiveBuffer.Length);
             if (!token.socket.ReceiveAsync(token.receiveArgs)) OnReceived(token.socket, token.receiveArgs);
         }
 
         private void PingReceived(byte[] data = null)
         {
-            var pongBytes = WebSocketByteGenerator.Pong(data);
+            var pongBytes = WebSocketByteGenerator.Pong(data, false);
             Debug.Log("pingがきたのでpongを。");
             {
                 try
@@ -749,7 +760,6 @@ Sec-WebSocket-Accept: " + acceptedSecret + "\r\n\r\n";
 
         private void AcceptNewClient(TcpListener tcpListener)
         {
-            Debug.Log("接続待ち開始");
             tcpListener.AcceptTcpClientAsync().ContinueWith(
                 tcpClientTask =>
                 {
