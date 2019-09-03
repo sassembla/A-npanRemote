@@ -69,7 +69,6 @@ public class ARFaceTracking : RemoteBase, IDisposable
     )
     {
         _this = this;
-
         _frameUpdated = x =>
         {
             // 自身の再度実行を防ぐ

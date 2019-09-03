@@ -82,10 +82,10 @@ public class Server
             {
                 if (newConnection.RequestHeaderDict.ContainsKey("local"))
                 {
+                    Debug.Log("local");
                     localSocket = newConnection;
                     newConnection.OnMessage = segments =>
                     {
-                        Debug.Log("local");
                         while (0 < segments.Count)
                         {
                             var data = segments.Dequeue();

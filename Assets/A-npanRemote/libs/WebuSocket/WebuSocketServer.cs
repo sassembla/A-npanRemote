@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -306,7 +307,7 @@ Sec-WebSocket-Accept: " + acceptedSecret + "\r\n\r\n";
                                             ReadyReceivingNewData(token);
                                             return;
                                         }
-                                        Debug.Log("なんかよくわからんけどここにいる");
+                                        Debug.LogError("なんかよくわからんけどここにいる");
                                         // else
                                         // {
                                         //     wsBufLength = webSocketHandshakeResult.Length - afterHandshakeDataIndex;
@@ -521,7 +522,7 @@ Sec-WebSocket-Accept: " + acceptedSecret + "\r\n\r\n";
                 if (bufferLength < cursor) break;
 
                 // ignore mask bit.
-                int length = encedBuffer[cursor++] & 0x0111;
+                int length = encedBuffer[cursor++] & 0x7f;
                 switch (length)
                 {
                     case 126:
@@ -774,7 +775,7 @@ Sec-WebSocket-Accept: " + acceptedSecret + "\r\n\r\n";
 
         private void StartReading(Socket socket)
         {
-            var connection = new ClientConnection(Guid.NewGuid().ToString(), 1024, socket, OnConnected);
+            var connection = new ClientConnection(Guid.NewGuid().ToString(), 10240, socket, OnConnected);
         }
 
 

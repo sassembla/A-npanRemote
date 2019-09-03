@@ -69,6 +69,7 @@ public class A_npanRemote : IDisposable
             1024,
             () =>
             {
+                Debug.Log("接続〜〜");
                 connected = true;
             },
             segments =>
@@ -166,6 +167,21 @@ public class A_npanRemote : IDisposable
             1024,
             () =>
             {
+                // var data = new byte[1300];
+                // // for (var i = 0; i < data.Length; i++)
+                // // {
+                // //     data[i] = (byte)UnityEngine.Random.Range(0, 100);
+                // // }
+
+                // try
+                // {
+                //     ws.Send(data);
+                // }
+                // catch (Exception e)
+                // {
+                //     Debug.Log("ここだ" + e);
+                // }
+
                 // do nothng.
             },
             segments =>

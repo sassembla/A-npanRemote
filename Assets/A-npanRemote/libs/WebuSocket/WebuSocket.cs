@@ -360,7 +360,6 @@ namespace WebuSocketCore
         private byte[] webSocketHandshakeResult;
         private void OnConnect(object unused, SocketAsyncEventArgs args)
         {
-            Debug.Log("connect!");
             var token = (SocketToken)args.UserToken;
             switch (token.socketState)
             {
@@ -1316,7 +1315,6 @@ namespace WebuSocketCore
             //     Debug.Log("send i:" + payloadBytes[i]);
             // }
 
-
             if (isWss)
             {
                 tlsClientProtocol.OfferOutput(payloadBytes, 0, payloadBytes.Length);
@@ -1393,6 +1391,7 @@ namespace WebuSocketCore
                 }
                 catch (Exception e)
                 {
+                    Debug.Log("送り出してる e:" + e);
                     if (OnError != null)
                     {
                         OnError(WebuSocketErrorEnum.SEND_FAILED, e);
