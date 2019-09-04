@@ -14,35 +14,28 @@ public class ARFaceTrackingSample : MonoBehaviour
         yield return new WaitForSeconds(1);
         var fTrack = new ARFaceTracking();
 
-        // 普通に開始させる
+        // トラッキングを普通に開始させる
         fTrack.StartTracking(
             () =>
             {
                 Debug.Log("start face tracking.");
             },
-            (faceMat4x4, faceBlendShapes, cameraPosAndRot) =>
+            (facePosAndRot, faceBlendShapes, cameraPosAndRot) =>
             {
                 // 受け取ってから普通に何かするルート、コードを書いておく。
-                OnFaceTrackingDataReceived(faceMat4x4, faceBlendShapes, cameraPosAndRot);
+                OnFaceTrackingDataReceived(facePosAndRot, faceBlendShapes, cameraPosAndRot);
             }
         );
 
         // このブロックはREMOTE ScriptDebugSymbolを消したら自動的に消える。
-        var faceBlendShapeDict = new Dictionary<string, float>();
-
         A_npanRemote.Setup<FaceTrackingPayload>(
             string.Empty,
-            fTrack,
+            fTrack,// RemoteBaseを継承したオブジェクト
             data =>
             {
                 // エディタの場合は、実機からのデータがくる。通常のデータ受け取りと同じコードを書いておく。
                 // 実機の場合も同じで、通常のデータ受け取りと同じコードを書いておくと良い。
-                faceBlendShapeDict.Clear();
-                for (var i = 0; i < data.keys.Length; i++)
-                {
-                    faceBlendShapeDict[data.keys[i]] = data.values[i];
-                }
-                OnFaceTrackingDataReceived(data.faceMat4x4, faceBlendShapeDict, data.cameraPosAndRot);
+                OnFaceTrackingDataReceived(data.facePosAndRot, data.GenerateFaceBlendShapeDict(), data.cameraRot);
             }
         );
 
@@ -60,36 +53,38 @@ public class ARFaceTrackingSample : MonoBehaviour
             {
                 Debug.Log("start face tracking.");
             },
-            (faceMat4x4, faceBlendShapes, cameraPosAndRot) =>
+            (facePosAndRot, faceBlendShapes, cameraRot) =>
             {
                 // 受け取ってから普通に何かするルート、コードを書いておく。
-                OnFaceTrackingDataReceived(faceMat4x4, faceBlendShapes, cameraPosAndRot);
+                OnFaceTrackingDataReceived(facePosAndRot, faceBlendShapes, cameraRot);
             }
         );
 
         // このブロックはREMOTE ScriptDebugSymbolを消したら自動的に消える。
-        var faceBlendShapeDict = new Dictionary<string, float>();
+        {
+            var faceBlendShapeDict = new Dictionary<string, float>();
 
-        A_npanRemote.Setup<FaceTrackingPayload>(
-            validInput,
-            fTrack,
-            data =>
-            {
-                // エディタの場合は、実機からのデータがくる。通常のデータ受け取りと同じコードを書いておく。
-                // 実機の場合も同じで、通常のデータ受け取りと同じコードを書いておくと良い。
-                faceBlendShapeDict.Clear();
-                for (var i = 0; i < data.keys.Length; i++)
+            A_npanRemote.Setup<FaceTrackingPayload>(
+                validInput,
+                fTrack,
+                data =>
                 {
-                    faceBlendShapeDict[data.keys[i]] = data.values[i];
+                    // エディタの場合は、実機からのデータがくる。通常のデータ受け取りと同じコードを書いておく。
+                    // 実機の場合も同じで、通常のデータ受け取りと同じコードを書いておくと良い。
+                    faceBlendShapeDict.Clear();
+                    for (var i = 0; i < data.keys.Length; i++)
+                    {
+                        faceBlendShapeDict[data.keys[i]] = data.values[i];
+                    }
+                    OnFaceTrackingDataReceived(data.facePosAndRot, faceBlendShapeDict, data.cameraRot);
                 }
-                OnFaceTrackingDataReceived(data.faceMat4x4, faceBlendShapeDict, data.cameraPosAndRot);
-            }
-        );
+            );
+        }
     }
 
-    private void OnFaceTrackingDataReceived(Matrix4x4 faceMat, Dictionary<string, float> face, PosAndRot cameraPosAndRot)
+    private void OnFaceTrackingDataReceived(PosAndRot facePosAndRot, Dictionary<string, float> face, Quaternion cameraRot)
     {
-        Debug.Log("face data received.");
+        Debug.Log("face data received. facePosAndRot:" + facePosAndRot + " cameraRot:" + cameraRot);
     }
 
     void OnDestroy()

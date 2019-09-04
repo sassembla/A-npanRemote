@@ -4,24 +4,37 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.XR.iOS;
 
+// これ消せないかな〜〜と思う。
 [Serializable]
 public class FaceTrackingPayload : IRemotePayload
 {
-    [SerializeField] public Matrix4x4 faceMat4x4;
+    [SerializeField] public PosAndRot facePosAndRot;
     [SerializeField] public string[] keys;
     [SerializeField] public float[] values;
-    [SerializeField] public PosAndRot cameraPosAndRot;
-    public FaceTrackingPayload(Matrix4x4 faceMat4x4, Dictionary<string, float> faceBlendShapes, PosAndRot cameraPosAndRot)
+    [SerializeField] public Quaternion cameraRot;
+    public FaceTrackingPayload(PosAndRot facePosAndRot, Dictionary<string, float> faceBlendShapes, Quaternion cameraRot)
     {
-        this.faceMat4x4 = faceMat4x4;
+        this.facePosAndRot = facePosAndRot;
         this.keys = faceBlendShapes.Keys.ToArray();
         this.values = faceBlendShapes.Values.ToArray();
-        this.cameraPosAndRot = cameraPosAndRot;
+        this.cameraRot = cameraRot;
+    }
+
+    internal Dictionary<string, float> GenerateFaceBlendShapeDict()
+    {
+        var faceBlendShapeDict = new Dictionary<string, float>();
+        for (var i = 0; i < keys.Length; i++)
+        {
+            faceBlendShapeDict[keys[i]] = values[i];
+        }
+        return faceBlendShapeDict;
     }
 }
 
+
 [Serializable]
-public class PosAndRot
+
+public struct PosAndRot
 {
     [SerializeField] public Vector3 pos;
     [SerializeField] public Quaternion rot;
@@ -30,6 +43,17 @@ public class PosAndRot
     {
         this.pos = pos;
         this.rot = rot;
+    }
+
+    public PosAndRot(Matrix4x4 mat)
+    {
+        this.pos = UnityARMatrixOps.GetPosition(mat);
+        this.rot = UnityARMatrixOps.GetRotation(mat);
+    }
+
+    public override string ToString()
+    {
+        return "pos:" + pos + " rot:" + rot;
     }
 }
 
@@ -65,9 +89,16 @@ public class ARFaceTracking : RemoteBase, IDisposable
 
     public void StartTracking(
         Action OnStartTracking,
-        Action<Matrix4x4, Dictionary<string, float>, PosAndRot> OnTrackingUpdate
+        Action<PosAndRot, Dictionary<string, float>, Quaternion> OnTrackingUpdate
     )
     {
+        // リモート接続時のアクションの紐付けを行う。
+        // これが任意の位置に必要なのが、うーーーーん、型の問題なんだけど、ダサい。
+        SetRemoteSendingAct<PosAndRot, Dictionary<string, float>, Quaternion>(
+            ref OnTrackingUpdate,
+            (t, u, v) => new FaceTrackingPayload(t, u, v)
+        );
+
         _this = this;
         _frameUpdated = x =>
         {
@@ -79,13 +110,13 @@ public class ARFaceTracking : RemoteBase, IDisposable
             // added, update時に実行される関数をセット
             _faceAdded = p =>
             {
-                OnTrackingUpdate(p.transform, p.blendShapes, GetCameraPosAndRot());
-                OnData(new FaceTrackingPayload(p.transform, p.blendShapes, GetCameraPosAndRot()));
+                var posAndRot = new PosAndRot(p.transform);
+                OnTrackingUpdate(posAndRot, p.blendShapes, GetCameraRot());
             };
             _faceUpdated = p =>
             {
-                OnTrackingUpdate(p.transform, p.blendShapes, GetCameraPosAndRot());
-                OnData(new FaceTrackingPayload(p.transform, p.blendShapes, GetCameraPosAndRot()));
+                var posAndRot = new PosAndRot(p.transform);
+                OnTrackingUpdate(posAndRot, p.blendShapes, GetCameraRot());
             };
             _faceRemoved = p => { };
         };
@@ -117,12 +148,11 @@ public class ARFaceTracking : RemoteBase, IDisposable
     }
 
 
-    public PosAndRot GetCameraPosAndRot()
+    public Quaternion GetCameraRot()
     {
         var pose = _session.GetCameraPose();
-        var pos = UnityARMatrixOps.GetPosition(pose);
         var rot = UnityARMatrixOps.GetRotation(pose);
-        return new PosAndRot(pos, rot);
+        return rot;
     }
 
 

@@ -154,7 +154,7 @@ namespace WebuSocketCore.Server
 
             if (args.BytesTransferred == 0)
             {
-                Debug.LogError("failed to receive. args.BytesTransferred = 0." + " args.SocketError:" + args.SocketError);
+                // Debug.LogError("failed to receive. args.BytesTransferred = 0." + " args.SocketError:" + args.SocketError);
                 // if (OnError != null)
                 // {
                 //     var error = new Exception("failed to receive. args.BytesTransferred = 0." + " args.SocketError:" + args.SocketError);
@@ -426,7 +426,7 @@ Sec-WebSocket-Accept: " + acceptedSecret + "\r\n\r\n";
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError("e:" + e);
+                    // disconnectをどう行うか。失敗をどうハンドルするか、今後考える必要がある。
                     // if (OnError != null)
                     // {
                     //     OnError(WebuSocketErrorEnum.SEND_FAILED, e);
