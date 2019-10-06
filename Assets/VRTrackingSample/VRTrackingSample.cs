@@ -42,15 +42,14 @@ public class VRTrackingSample : MonoBehaviour
             new GameObject[] { cubeHead, cubeLeftHand, cubeRightHand },
             data =>
             {
+                A_npanRemote.Send<VRTrackingPayload>(new VRTrackingPayload());
                 OnTrackingMove(data);
             }
         );
 
         yield return new WaitForSeconds(1);
-        Debug.LogError("まだ調整できてない");
         A_npanRemote.Setup<VRTrackingPayload>(
             "192.168.11.17",
-            vrTracking,
             data =>
             {
                 OnTrackingMove(data);

@@ -2,7 +2,7 @@
 using System.Collections;
 using UnityEngine;
 
-public class VRTracking : RemoteMonoBehaviourBase, IDisposable
+public class VRTracking : MonoBehaviour, IDisposable
 {
     public void StartTracking(GameObject[] cameraLeftAndRight, Action<VRTrackingPayload> update)
     {

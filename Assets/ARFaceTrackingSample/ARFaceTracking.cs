@@ -58,7 +58,7 @@ public struct PosAndRot
 }
 
 
-public class ARFaceTracking : RemoteBase, IDisposable
+public class ARFaceTracking : IDisposable
 {
     private enum TrackingState
     {
@@ -88,24 +88,17 @@ public class ARFaceTracking : RemoteBase, IDisposable
 
 
     public void StartTracking(
-        Action OnStartTracking,
+        Action onStartTracking,
         Action<PosAndRot, Dictionary<string, float>, Quaternion> OnTrackingUpdate
     )
     {
-        // リモート接続時のアクションの紐付けを行う。
-        // これが任意の位置に必要なのが、うーーーーん、型の問題なんだけど、ダサい。
-        SetRemoteSendingAct<PosAndRot, Dictionary<string, float>, Quaternion>(
-            ref OnTrackingUpdate,
-            (t, u, v) => new FaceTrackingPayload(t, u, v)
-        );
-
         _this = this;
         _frameUpdated = x =>
         {
             // 自身の再度実行を防ぐ
             _frameUpdated = x2 => { };
 
-            OnStartTracking();
+            onStartTracking();
 
             // added, update時に実行される関数をセット
             _faceAdded = p =>

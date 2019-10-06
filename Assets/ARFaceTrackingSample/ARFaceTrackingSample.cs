@@ -30,7 +30,6 @@ public class ARFaceTrackingSample : MonoBehaviour
         // このブロックはREMOTE ScriptDebugSymbolを消したら自動的に消える。
         A_npanRemote.Setup<FaceTrackingPayload>(
             string.Empty,
-            fTrack,// RemoteBaseを継承したオブジェクト
             data =>
             {
                 // エディタの場合は、実機からのデータがくる。通常のデータ受け取りと同じコードを書いておく。
@@ -44,7 +43,7 @@ public class ARFaceTrackingSample : MonoBehaviour
 
     public void Connect(TMP_InputField textHolder)
     {
-        var validInput = textHolder.text;
+        var ipText = textHolder.text;
         var fTrack = new ARFaceTracking();
 
         // 普通に開始させる
@@ -55,18 +54,20 @@ public class ARFaceTrackingSample : MonoBehaviour
             },
             (facePosAndRot, faceBlendShapes, cameraRot) =>
             {
+                // 送り出しを行う(REMOTE ScriptDebugSymbolがある時のみ実行される)
+                A_npanRemote.Send<FaceTrackingPayload>(new FaceTrackingPayload(facePosAndRot, faceBlendShapes, cameraRot));
+
                 // 受け取ってから普通に何かするルート、コードを書いておく。
                 OnFaceTrackingDataReceived(facePosAndRot, faceBlendShapes, cameraRot);
             }
         );
 
-        // このブロックはREMOTE ScriptDebugSymbolを消したら自動的に消える。
+        // このブロックはREMOTE ScriptDebugSymbol を消したら自動的に消える。
         {
             var faceBlendShapeDict = new Dictionary<string, float>();
 
             A_npanRemote.Setup<FaceTrackingPayload>(
-                validInput,
-                fTrack,
+                ipText,
                 data =>
                 {
                     // エディタの場合は、実機からのデータがくる。通常のデータ受け取りと同じコードを書いておく。

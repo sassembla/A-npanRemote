@@ -7,11 +7,12 @@ using WebuSocketCore;
 
 public class A_npanRemote : IDisposable
 {
+    private bool isRemoteConnected;
     private WebuSocket ws = null;
     private static A_npanRemote _this;
 
     [System.Diagnostics.Conditional("REMOTE")]
-    public static void Setup<T>(string ip, RemoteBase basement, Action<T> onData) where T : IRemotePayload
+    public static void Setup<T>(string ip, Action<T> onData) where T : IRemotePayload
     {
 #if UNITY_EDITOR
         // エディタの場合、セットアップを行う。
@@ -20,22 +21,25 @@ public class A_npanRemote : IDisposable
 #else
         // エディタ以外であれば、特定のIPへと接続を行う。
         _this = new A_npanRemote();
-        _this.SetupRemoteConnection(ip, basement, onData);
+        _this.SetupRemoteConnection(ip, onData);
 #endif
     }
 
-    public static void Setup<T>(string ip, RemoteMonoBehaviourBase basement, Action<T> onData) where T : IRemotePayload
+    [System.Diagnostics.Conditional("REMOTE")]
+    public static void Send<T>(T faceTrackingPayload)
     {
-#if UNITY_EDITOR
-        // エディタの場合、セットアップを行う。
-        _this = new A_npanRemote();
-        _this.SetupEditorConnection(onData);
-#else
-        // エディタ以外であれば、特定のIPへと接続を行う。
-        _this = new A_npanRemote();
-        _this.SetupRemoteConnection(ip, basement, onData);
-#endif
+        if (_this != null)
+        {
+            if (_this.isRemoteConnected)
+            {
+                var json = JsonUtility.ToJson(faceTrackingPayload);
+                _this.ws.Send(Encoding.UTF8.GetBytes(json));
+            }
+        }
     }
+
+
+
 
 
     public static void Teardown()
@@ -43,25 +47,8 @@ public class A_npanRemote : IDisposable
         _this?.Dispose();
     }
 
-    private void SetupRemoteConnection<T>(string ip, RemoteBase basement, Action<T> onData) where T : IRemotePayload
+    private void SetupRemoteConnection<T>(string ip, Action<T> onData) where T : IRemotePayload
     {
-        var connected = false;
-
-        /*
-            実機であればonDataが呼ばれた時に、データを送り出す。
-            basementインスタンスのOnDataメソッドに対して、送信ブロックを生成する。
-         */
-        basement._onData = payload =>
-        {
-            // onData((T)payload);
-
-            if (connected)
-            {
-                var json = JsonUtility.ToJson(payload);
-                ws.Send(Encoding.UTF8.GetBytes(json));
-            }
-        };
-
         var url = "ws://" + ip + ":1129";
 
         ws = new WebuSocket(
@@ -69,53 +56,8 @@ public class A_npanRemote : IDisposable
             1024,
             () =>
             {
-                Debug.Log("接続〜〜");
-                connected = true;
-            },
-            segments =>
-            {
-                // データを受け取ったのでなんかする。
-                Debug.Log("きた");
-            },
-            () => { },
-            closedEnum =>
-            {
-                Debug.Log("closedEnum:" + closedEnum);
-            },
-            (error, reason) =>
-            {
-                Debug.Log("e:" + error + " reason:" + reason);
-            }
-        );
-    }
-
-    private void SetupRemoteConnection<T>(string ip, RemoteMonoBehaviourBase basement, Action<T> onData) where T : IRemotePayload
-    {
-        var connected = false;
-
-        /*
-            実機であればonDataが呼ばれた時に、データを送り出す。
-            basementインスタンスのOnDataメソッドに対して、送信ブロックを生成する。
-         */
-        basement._onData = payload =>
-        {
-            // onData((T)payload);
-
-            if (connected)
-            {
-                var json = JsonUtility.ToJson(payload);
-                ws.Send(Encoding.UTF8.GetBytes(json));
-            }
-        };
-
-        var url = "ws://" + ip + ":1129";
-
-        ws = new WebuSocket(
-            url,
-            1024,
-            () =>
-            {
-                connected = true;
+                // 接続完了
+                isRemoteConnected = true;
             },
             segments =>
             {
@@ -155,7 +97,14 @@ public class A_npanRemote : IDisposable
                 var jsonData = JsonUtility.FromJson<T>(jsonString);
 
                 // deserializeしたデータをRemoteのハンドラに投入する。
-                onData(jsonData);
+                try
+                {
+                    onData(jsonData);
+                }
+                catch
+                {
+                    // エラーは無視する。
+                }
             }
         );
 
@@ -210,6 +159,7 @@ public class A_npanRemote : IDisposable
             new Dictionary<string, string> { { "local", "" } }
         );
     }
+
 
 
 

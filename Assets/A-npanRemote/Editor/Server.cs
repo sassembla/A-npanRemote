@@ -82,7 +82,6 @@ public class Server
             {
                 if (newConnection.RequestHeaderDict.ContainsKey("local"))
                 {
-                    Debug.Log("local");
                     localSocket = newConnection;
                     newConnection.OnMessage = segments =>
                     {
@@ -107,7 +106,6 @@ public class Server
                 }
                 else
                 {
-                    Debug.Log("remote");
                     remoteSocket = newConnection;
                     newConnection.OnMessage = segments =>
                     {
