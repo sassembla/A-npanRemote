@@ -4,12 +4,26 @@ using System.Text;
 using ChanquoCore;
 using UnityEngine;
 using WebuSocketCore;
+using AutoyaFramework.Persistence.Files;
 
 public class A_npanRemote : IDisposable
 {
     private bool isRemoteConnected;
     private WebuSocket ws = null;
     private static A_npanRemote _this;
+
+
+    [System.Diagnostics.Conditional("REMOTE")]
+    public static void LatestConnectionRecord(ref string record)
+    {
+        var fp = new FilePersistence(Application.persistentDataPath);
+        if (fp.IsExist("connectionRecord", "latestIp"))
+        {
+            record = fp.Load("connectionRecord", "latestIp");
+            return;
+        }
+        record = "";
+    }
 
     [System.Diagnostics.Conditional("REMOTE")]
     public static void Setup<T>(string ip, Action<T> onData) where T : IRemotePayload
@@ -51,13 +65,18 @@ public class A_npanRemote : IDisposable
     {
         var url = "ws://" + ip + ":1129";
 
+        var fp = new FilePersistence(Application.persistentDataPath);
+
         ws = new WebuSocket(
             url,
-            1024,
+            10240,
             () =>
             {
                 // 接続完了
                 isRemoteConnected = true;
+
+                // 接続できたipを保存
+                fp.Update("connectionRecord", "latestIp", ip);
             },
             segments =>
             {
@@ -111,11 +130,16 @@ public class A_npanRemote : IDisposable
 
         var jsonPayload = new OnUpdatePayload();
 
+        var fp = new FilePersistence(Application.persistentDataPath);
+
         ws = new WebuSocket(
             "ws://" + "127.0.0.1" + ":1129",
-            1024,
+            10240,
             () =>
             {
+                // 接続できたipを保存
+                fp.Update("connectionRecord", "latestIp", "127.0.0.1");
+
                 // var data = new byte[1300];
                 // // for (var i = 0; i < data.Length; i++)
                 // // {

@@ -6,6 +6,18 @@ public class ARFaceTrackingSample : MonoBehaviour
 {
     private ARFaceTracking arFaceTracking;
 
+    public void Start()
+    {
+        // 過去に接続に成功した記録があれば、UIに入れる。
+        var oldIp = string.Empty;
+        A_npanRemote.LatestConnectionRecord(ref oldIp);
+
+        if (!string.IsNullOrEmpty(oldIp))
+        {
+            var tmInput = GameObject.Find("InputField (TMP)").GetComponent<TMP_InputField>();
+            tmInput.text = oldIp;
+        }
+    }
 
     public void Connect(TMP_InputField textHolder)
     {

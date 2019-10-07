@@ -122,47 +122,6 @@ public class Server
             }
         );
 
-        /*
-            IWebSocketConnection localSocket = null;
-            var server = new WebSocketServer("ws://0.0.0.0:1129");
-            FleckLog.Level = LogLevel.Info;
-            server.Start(
-                socket =>
-                {
-                    socket.OnOpen = () =>
-                    {
-                        if (socket.ConnectionInfo.Headers.ContainsKey("receiver"))
-                        {
-                            localSocket = socket;
-                        }
-                        else
-                        {
-                            remoteSocket = socket;
-                        }
-                    };
-                    socket.OnBinary = message =>
-                    {
-                        if (socket == localSocket)
-                        {
-                            remoteSocket?.Send(message);
-                            return;
-                        }
-
-                        localSocket?.Send(message);
-
-                        count++;
-
-                        // データがきたタイミングでフレームがいい感じだったらスクショを送り出す
-                        if (count % 10 == 0)
-                        {
-                            shot = true;
-                            count = 0;
-                        }
-                    };
-                }
-            );
-         */
-
         Action serverStop = () =>
         {
             server?.Dispose();
