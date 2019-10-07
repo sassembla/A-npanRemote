@@ -32,7 +32,7 @@ public class ARFaceTrackingSample : MonoBehaviour
             },
             (facePosAndRot, faceBlendShapes, cameraRot) =>
             {
-                // 送り出しを行う( REMOTE ScriptDebugSymbolがある時のみ実行される)
+                // 送り出しを行う( REMOTE ScriptingDefineSymbol がある時のみ実行される)
                 A_npanRemote.SendToEditor<FaceTrackingPayload>(new FaceTrackingPayload(facePosAndRot, faceBlendShapes, cameraRot));
 
                 // 受け取ってから普通に何かするルート、コードを書いておく。
@@ -40,7 +40,7 @@ public class ARFaceTrackingSample : MonoBehaviour
             }
         );
 
-        // このブロックは REMOTE ScriptDebugSymbol を消したら自動的に消える。
+        // このブロックは REMOTE ScriptingDefineSymbol を消したら自動的に消える。
         {
             A_npanRemote.Setup<FaceTrackingPayload>(
                 ipText,
