@@ -26,7 +26,7 @@ public class A_npanRemote : IDisposable
     }
 
     [System.Diagnostics.Conditional("REMOTE")]
-    public static void Send<T>(T faceTrackingPayload)
+    public static void SendToEditor<T>(T faceTrackingPayload)
     {
         if (_this != null)
         {

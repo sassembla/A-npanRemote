@@ -18,11 +18,19 @@ public class HandInput
 }
 
 [Serializable]
+
 public class VRTrackingPayload : IRemotePayload
 {
     [SerializeField] public VRTransform headCamera;
     [SerializeField] public HandInput leftHand;
     [SerializeField] public HandInput rightHand;
+
+    public VRTrackingPayload(VRTransform headCamera, HandInput leftHand, HandInput rightHand)
+    {
+        this.headCamera = headCamera;
+        this.leftHand = leftHand;
+        this.rightHand = rightHand;
+    }
 }
 
 public class VRTrackingSample : MonoBehaviour
@@ -42,7 +50,7 @@ public class VRTrackingSample : MonoBehaviour
             new GameObject[] { cubeHead, cubeLeftHand, cubeRightHand },
             data =>
             {
-                A_npanRemote.Send<VRTrackingPayload>(new VRTrackingPayload());
+                A_npanRemote.SendToEditor<VRTrackingPayload>(data);
                 OnTrackingMove(data);
             }
         );

@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.XR.iOS;
 
-// これ消せないかな〜〜と思う。
+
 [Serializable]
 public class FaceTrackingPayload : IRemotePayload
 {
@@ -12,12 +12,26 @@ public class FaceTrackingPayload : IRemotePayload
     [SerializeField] public string[] keys;
     [SerializeField] public float[] values;
     [SerializeField] public Quaternion cameraRot;
+
     public FaceTrackingPayload(PosAndRot facePosAndRot, Dictionary<string, float> faceBlendShapes, Quaternion cameraRot)
     {
         this.facePosAndRot = facePosAndRot;
         this.keys = faceBlendShapes.Keys.ToArray();
         this.values = faceBlendShapes.Values.ToArray();
         this.cameraRot = cameraRot;
+    }
+
+    public Dictionary<string, float> FaceBlendShapeDict
+    {
+        get
+        {
+            var faceBlendShapeDict = new Dictionary<string, float>();
+            for (var i = 0; i < keys.Length; i++)
+            {
+                faceBlendShapeDict[keys[i]] = values[i];
+            }
+            return faceBlendShapeDict;
+        }
     }
 
     internal Dictionary<string, float> GenerateFaceBlendShapeDict()
@@ -33,7 +47,6 @@ public class FaceTrackingPayload : IRemotePayload
 
 
 [Serializable]
-
 public struct PosAndRot
 {
     [SerializeField] public Vector3 pos;

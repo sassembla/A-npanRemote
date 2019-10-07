@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
@@ -8,38 +6,6 @@ public class ARFaceTrackingSample : MonoBehaviour
 {
     private ARFaceTracking arFaceTracking;
 
-#if UNITY_EDITOR
-    IEnumerator Start()
-    {
-        yield return new WaitForSeconds(1);
-        var fTrack = new ARFaceTracking();
-
-        // トラッキングを普通に開始させる
-        fTrack.StartTracking(
-            () =>
-            {
-                Debug.Log("start face tracking.");
-            },
-            (facePosAndRot, faceBlendShapes, cameraPosAndRot) =>
-            {
-                // 受け取ってから普通に何かするルート、コードを書いておく。
-                OnFaceTrackingDataReceived(facePosAndRot, faceBlendShapes, cameraPosAndRot);
-            }
-        );
-
-        // このブロックはREMOTE ScriptDebugSymbolを消したら自動的に消える。
-        A_npanRemote.Setup<FaceTrackingPayload>(
-            string.Empty,
-            data =>
-            {
-                // エディタの場合は、実機からのデータがくる。通常のデータ受け取りと同じコードを書いておく。
-                // 実機の場合も同じで、通常のデータ受け取りと同じコードを書いておくと良い。
-                OnFaceTrackingDataReceived(data.facePosAndRot, data.GenerateFaceBlendShapeDict(), data.cameraRot);
-            }
-        );
-
-    }
-#endif
 
     public void Connect(TMP_InputField textHolder)
     {
@@ -54,30 +20,22 @@ public class ARFaceTrackingSample : MonoBehaviour
             },
             (facePosAndRot, faceBlendShapes, cameraRot) =>
             {
-                // 送り出しを行う(REMOTE ScriptDebugSymbolがある時のみ実行される)
-                A_npanRemote.Send<FaceTrackingPayload>(new FaceTrackingPayload(facePosAndRot, faceBlendShapes, cameraRot));
+                // 送り出しを行う( REMOTE ScriptDebugSymbolがある時のみ実行される)
+                A_npanRemote.SendToEditor<FaceTrackingPayload>(new FaceTrackingPayload(facePosAndRot, faceBlendShapes, cameraRot));
 
                 // 受け取ってから普通に何かするルート、コードを書いておく。
                 OnFaceTrackingDataReceived(facePosAndRot, faceBlendShapes, cameraRot);
             }
         );
 
-        // このブロックはREMOTE ScriptDebugSymbol を消したら自動的に消える。
+        // このブロックは REMOTE ScriptDebugSymbol を消したら自動的に消える。
         {
-            var faceBlendShapeDict = new Dictionary<string, float>();
-
             A_npanRemote.Setup<FaceTrackingPayload>(
                 ipText,
                 data =>
                 {
                     // エディタの場合は、実機からのデータがくる。通常のデータ受け取りと同じコードを書いておく。
-                    // 実機の場合も同じで、通常のデータ受け取りと同じコードを書いておくと良い。
-                    faceBlendShapeDict.Clear();
-                    for (var i = 0; i < data.keys.Length; i++)
-                    {
-                        faceBlendShapeDict[data.keys[i]] = data.values[i];
-                    }
-                    OnFaceTrackingDataReceived(data.facePosAndRot, faceBlendShapeDict, data.cameraRot);
+                    OnFaceTrackingDataReceived(data.facePosAndRot, data.FaceBlendShapeDict, data.cameraRot);
                 }
             );
         }

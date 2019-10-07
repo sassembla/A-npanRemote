@@ -14,32 +14,28 @@ public class VRTracking : MonoBehaviour, IDisposable
     {
         while (true)
         {
-            update(
-                new VRTrackingPayload()
+            var headCamera = new VRTransform()
+            {
+                pos = cameraLeftAndRight[0].transform.position,
+                rot = cameraLeftAndRight[0].transform.rotation,
+            };
+            var leftHand = new HandInput()
+            {
+                trans = new VRTransform()
                 {
-                    headCamera = new VRTransform()
-                    {
-                        pos = cameraLeftAndRight[0].transform.position,
-                        rot = cameraLeftAndRight[0].transform.rotation,
-                    },
-                    leftHand = new HandInput()
-                    {
-                        trans = new VRTransform()
-                        {
-                            pos = cameraLeftAndRight[1].transform.position,
-                            rot = cameraLeftAndRight[1].transform.rotation,
-                        }
-                    },
-                    rightHand = new HandInput()
-                    {
-                        trans = new VRTransform()
-                        {
-                            pos = cameraLeftAndRight[2].transform.position,
-                            rot = cameraLeftAndRight[2].transform.rotation,
-                        }
-                    }
+                    pos = cameraLeftAndRight[1].transform.position,
+                    rot = cameraLeftAndRight[1].transform.rotation,
                 }
-            );
+            };
+            var rightHand = new HandInput()
+            {
+                trans = new VRTransform()
+                {
+                    pos = cameraLeftAndRight[2].transform.position,
+                    rot = cameraLeftAndRight[2].transform.rotation,
+                }
+            };
+            update(new VRTrackingPayload(headCamera, leftHand, rightHand));
             yield return null;
         }
     }
