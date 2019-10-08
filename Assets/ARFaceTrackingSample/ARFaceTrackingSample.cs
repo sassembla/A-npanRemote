@@ -1,6 +1,52 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
+
+
+// A_npanRemoteが使うためのデータ構造。
+[Serializable]
+public class FaceTrackingPayload : IRemotePayload
+{
+    [SerializeField] public PosAndRot facePosAndRot;
+    [SerializeField] public string[] keys;
+    [SerializeField] public float[] values;
+    [SerializeField] public Quaternion cameraRot;
+
+    public FaceTrackingPayload(PosAndRot facePosAndRot, Dictionary<string, float> faceBlendShapes, Quaternion cameraRot)
+    {
+        this.facePosAndRot = facePosAndRot;
+        this.keys = faceBlendShapes.Keys.ToArray();
+        this.values = faceBlendShapes.Values.ToArray();
+        this.cameraRot = cameraRot;
+    }
+
+    public object T()
+    {
+        return this.facePosAndRot;
+    }
+
+    public object U()
+    {
+        return GenerateFaceBlendShapeDict();
+    }
+
+    public object V()
+    {
+        return this.cameraRot;
+    }
+
+    internal Dictionary<string, float> GenerateFaceBlendShapeDict()
+    {
+        var faceBlendShapeDict = new Dictionary<string, float>();
+        for (var i = 0; i < keys.Length; i++)
+        {
+            faceBlendShapeDict[keys[i]] = values[i];
+        }
+        return faceBlendShapeDict;
+    }
+}
 
 public class ARFaceTrackingSample : MonoBehaviour
 {
@@ -24,6 +70,25 @@ public class ARFaceTrackingSample : MonoBehaviour
         var ipText = textHolder.text;
         var fTrack = new ARFaceTracking();
 
+
+        /*
+            実機からエディタは、データを送り出す
+            エディタは実機からのデータを受け取って動作する
+
+            同じ関数へと送り出せればOKで、実機のみ、さらに転送する責務を負う。
+
+            このパターンはなんだろうな、、、、
+            
+            理想形は、
+            ・実機側はトラッキングを開始したら勝手にエディタへとデータが送られる
+            ・エディタ側はトラッキングを開始したらデータを受け取る
+
+            前者が大変なんだよな。一つの出力を2つに、自然に増やすのを求められてる。
+            取り出せればいけるな
+         */
+
+
+
         // 普通に開始させる
         fTrack.StartTracking(
             () =>
@@ -32,28 +97,27 @@ public class ARFaceTrackingSample : MonoBehaviour
             },
             (facePosAndRot, faceBlendShapes, cameraRot) =>
             {
-                // 送り出しを行う( REMOTE ScriptingDefineSymbol がある時のみ実行される)
-                A_npanRemote.SendToEditor<FaceTrackingPayload>(new FaceTrackingPayload(facePosAndRot, faceBlendShapes, cameraRot));
-
-                // 受け取ってから普通に何かするルート、コードを書いておく。
                 OnFaceTrackingDataReceived(facePosAndRot, faceBlendShapes, cameraRot);
             }
         );
 
         // このブロックは REMOTE ScriptingDefineSymbol を消したら自動的に消える。
-        {
-            A_npanRemote.Setup<FaceTrackingPayload>(
-                ipText,
-                data =>
-                {
-                    // エディタの場合は、実機からのデータがくる。通常のデータ受け取りと同じコードを書いておく。
-                    OnFaceTrackingDataReceived(data.facePosAndRot, data.FaceBlendShapeDict, data.cameraRot);
-                }
-            );
-        }
+        /*
+            めちゃくちゃ外側で頑張ってる。
+            引数を渡すと、
+         */
+        A_npanRemote.Setup<PosAndRot, Dictionary<string, float>, Quaternion, FaceTrackingPayload>(
+            ipText,
+            ref fTrack.OnTrackingUpdate,
+            (t, u, v) =>
+            {
+                return new FaceTrackingPayload(t, u, v);
+            },
+            OnFaceTrackingDataReceived
+        );
     }
 
-    private void OnFaceTrackingDataReceived(PosAndRot facePosAndRot, Dictionary<string, float> face, Quaternion cameraRot)
+    private void OnFaceTrackingDataReceived(PosAndRot facePosAndRot, Dictionary<string, float> faceBlendShapes, Quaternion cameraRot)
     {
         Debug.Log("face data received. facePosAndRot:" + facePosAndRot + " cameraRot:" + cameraRot);
     }

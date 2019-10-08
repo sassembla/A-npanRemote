@@ -31,6 +31,21 @@ public class VRTrackingPayload : IRemotePayload
         this.leftHand = leftHand;
         this.rightHand = rightHand;
     }
+
+    public object T()
+    {
+        throw new NotImplementedException();
+    }
+
+    public object U()
+    {
+        throw new NotImplementedException();
+    }
+
+    public object V()
+    {
+        throw new NotImplementedException();
+    }
 }
 
 public class VRTrackingSample : MonoBehaviour
@@ -56,13 +71,14 @@ public class VRTrackingSample : MonoBehaviour
         );
 
         yield return new WaitForSeconds(1);
-        A_npanRemote.Setup<VRTrackingPayload>(
-            "192.168.11.17",
-            data =>
-            {
-                OnTrackingMove(data);
-            }
-        );
+        Debug.Log("封印中");
+        // A_npanRemote.Setup<VRTrackingPayload>(
+        //     "192.168.11.17",
+        //     data =>
+        //     {
+        //         OnTrackingMove(data);
+        //     }
+        // );
     }
 
     private void OnTrackingMove(VRTrackingPayload update)

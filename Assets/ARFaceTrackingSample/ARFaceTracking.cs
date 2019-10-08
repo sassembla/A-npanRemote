@@ -1,49 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.XR.iOS;
 
-
-[Serializable]
-public class FaceTrackingPayload : IRemotePayload
-{
-    [SerializeField] public PosAndRot facePosAndRot;
-    [SerializeField] public string[] keys;
-    [SerializeField] public float[] values;
-    [SerializeField] public Quaternion cameraRot;
-
-    public FaceTrackingPayload(PosAndRot facePosAndRot, Dictionary<string, float> faceBlendShapes, Quaternion cameraRot)
-    {
-        this.facePosAndRot = facePosAndRot;
-        this.keys = faceBlendShapes.Keys.ToArray();
-        this.values = faceBlendShapes.Values.ToArray();
-        this.cameraRot = cameraRot;
-    }
-
-    public Dictionary<string, float> FaceBlendShapeDict
-    {
-        get
-        {
-            var faceBlendShapeDict = new Dictionary<string, float>();
-            for (var i = 0; i < keys.Length; i++)
-            {
-                faceBlendShapeDict[keys[i]] = values[i];
-            }
-            return faceBlendShapeDict;
-        }
-    }
-
-    internal Dictionary<string, float> GenerateFaceBlendShapeDict()
-    {
-        var faceBlendShapeDict = new Dictionary<string, float>();
-        for (var i = 0; i < keys.Length; i++)
-        {
-            faceBlendShapeDict[keys[i]] = values[i];
-        }
-        return faceBlendShapeDict;
-    }
-}
 
 
 [Serializable]
@@ -99,13 +58,16 @@ public class ARFaceTracking : IDisposable
         UnityARSessionNativeInterface.ARFrameUpdatedEvent += FrameUpdated;
     }
 
+    public Action<PosAndRot, Dictionary<string, float>, Quaternion> OnTrackingUpdate;
 
     public void StartTracking(
         Action onStartTracking,
-        Action<PosAndRot, Dictionary<string, float>, Quaternion> OnTrackingUpdate
+        Action<PosAndRot, Dictionary<string, float>, Quaternion> onTrackingUpdate
     )
     {
         _this = this;
+
+        this.OnTrackingUpdate = onTrackingUpdate;
         _frameUpdated = x =>
         {
             // 自身の再度実行を防ぐ
