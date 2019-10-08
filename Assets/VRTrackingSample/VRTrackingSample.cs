@@ -70,7 +70,6 @@ public class VRTrackingSample : MonoBehaviour
             new GameObject[] { cubeHead, cubeLeftHand, cubeRightHand },
             data =>
             {
-                A_npanRemote.SendToEditor<VRTrackingPayload>(data);
                 OnTrackingMove(data);
             }
         );
