@@ -29,7 +29,7 @@ public class A_npanRemote : IDisposable
     public static void Setup<T, U, V, W>(string ip, ref Action<T, U, V> onSend, Action<T, U, V> onReceived) where W : IRemotePayload3
     {
         _this = new A_npanRemote();
-#if !UNITY_EDITOR
+#if UNITY_EDITOR
         // エディタの場合、セットアップと受け取り時の処理のセットアップを行う。
         _this.SetupEditorConnection3<T, U, V, W>(onReceived);
 #else
@@ -37,20 +37,6 @@ public class A_npanRemote : IDisposable
         _this.SetupRemoteConnection3<T, U, V, W>(ip, ref onSend, onReceived);
 #endif
     }
-
-
-    [System.Diagnostics.Conditional("REMOTE")]
-
-    public static void SendToEditor<T>(T faceTrackingPayload)
-    {
-        // エディタの場合は何もしない
-#if UNITY_EDITOR
-        return;
-#endif
-
-
-    }
-
 
 
 
@@ -106,10 +92,12 @@ public class A_npanRemote : IDisposable
             () => { },
             closedEnum =>
             {
+                isRemoteConnected = false;
                 Debug.Log("closedEnum:" + closedEnum);
             },
             (error, reason) =>
             {
+                isRemoteConnected = false;
                 Debug.Log("e:" + error + " reason:" + reason);
             }
         );
