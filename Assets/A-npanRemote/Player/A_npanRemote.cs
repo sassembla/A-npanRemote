@@ -25,18 +25,48 @@ public class A_npanRemote : IDisposable
         record = "";
     }
 
+
+
     [System.Diagnostics.Conditional("REMOTE")]
-    public static void Setup<T, U, V, W>(string ip, ref Action<T, U, V> onSend, Action<T, U, V> onReceived) where W : IRemotePayload3
+    public static void Setup<P0, PayloadType>(string ip, ref Action<P0> onSend, Action<P0> onReceived) where PayloadType : IRemotePayload1
     {
         _this = new A_npanRemote();
 #if UNITY_EDITOR
         // エディタの場合、セットアップと受け取り時の処理のセットアップを行う。
-        _this.SetupEditorConnection3<T, U, V, W>(onReceived);
+        _this.SetupEditorConnection1<P0, PayloadType>(onReceived);
 #else
         // エディタ以外であれば、特定のIPへと接続を行う。
-        _this.SetupRemoteConnection3<T, U, V, W>(ip, ref onSend, onReceived);
+        _this.SetupRemoteConnection1<P0, PayloadType>(ip, ref onSend, onReceived);
 #endif
     }
+
+    [System.Diagnostics.Conditional("REMOTE")]
+    public static void Setup<P0, P1, PayloadType>(string ip, ref Action<P0, P1> onSend, Action<P0, P1> onReceived) where PayloadType : IRemotePayload2
+    {
+        _this = new A_npanRemote();
+#if UNITY_EDITOR
+        // エディタの場合、セットアップと受け取り時の処理のセットアップを行う。
+        _this.SetupEditorConnection2<P0, P1, PayloadType>(onReceived);
+#else
+        // エディタ以外であれば、特定のIPへと接続を行う。
+        _this.SetupRemoteConnection2<P0, P1, PayloadType>(ip, ref onSend, onReceived);
+#endif
+    }
+
+    [System.Diagnostics.Conditional("REMOTE")]
+    public static void Setup<P0, P1, P2, PayloadType>(string ip, ref Action<P0, P1, P2> onSend, Action<P0, P1, P2> onReceived) where PayloadType : IRemotePayload3
+    {
+        _this = new A_npanRemote();
+#if UNITY_EDITOR
+        // エディタの場合、セットアップと受け取り時の処理のセットアップを行う。
+        _this.SetupEditorConnection3<P0, P1, P2, PayloadType>(onReceived);
+#else
+        // エディタ以外であれば、特定のIPへと接続を行う。
+        _this.SetupRemoteConnection3<P0, P1, P2, PayloadType>(ip, ref onSend, onReceived);
+#endif
+    }
+
+
 
 
 
@@ -48,12 +78,59 @@ public class A_npanRemote : IDisposable
 
 
 
+    private void SetupRemoteConnection1<T, W>(string ip, ref Action<T> onData, Action<T> onReceived) where W : IRemotePayload1
+    {
+        // onDataの書き換えを行う
+        onData = (t) =>
+        {
+            // ここで送り出しを行う。
+            if (isRemoteConnected)
+            {
+                try
+                {
+                    var w = Activator.CreateInstance(typeof(W), t);
+                    var json = JsonUtility.ToJson(w);
+                    _this.ws.Send(Encoding.UTF8.GetBytes(json));
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError("e:" + e);
+                }
+            }
+            onReceived(t);
+        };
+
+        StartConnect(ip);
+    }
+
+    private void SetupRemoteConnection2<T, U, W>(string ip, ref Action<T, U> onData, Action<T, U> onReceived) where W : IRemotePayload2
+    {
+        // onDataの書き換えを行う
+        onData = (t, u) =>
+        {
+            // ここで送り出しを行う。
+            if (isRemoteConnected)
+            {
+                try
+                {
+                    var w = Activator.CreateInstance(typeof(W), t, u);
+                    var json = JsonUtility.ToJson(w);
+                    _this.ws.Send(Encoding.UTF8.GetBytes(json));
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError("e:" + e);
+                }
+            }
+            onReceived(t, u);
+        };
+
+        StartConnect(ip);
+    }
+
+
     private void SetupRemoteConnection3<T, U, V, W>(string ip, ref Action<T, U, V> onData, Action<T, U, V> onReceived) where W : IRemotePayload3
     {
-        var url = "ws://" + ip + ":1129";
-
-        var fp = new FilePersistence(Application.persistentDataPath);
-
         // onDataの書き換えを行う
         onData = (t, u, v) =>
         {
@@ -74,6 +151,13 @@ public class A_npanRemote : IDisposable
             onReceived(t, u, v);
         };
 
+        StartConnect(ip);
+    }
+
+    private void StartConnect(string ip)
+    {
+        var url = "ws://" + ip + ":1129";
+        var fp = new FilePersistence(Application.persistentDataPath);
         ws = new WebuSocket(
             url,
             10240,
@@ -108,7 +192,70 @@ public class A_npanRemote : IDisposable
         public string payload;
     }
 
+    private void SetupEditorConnection1<T, W>(Action<T> onReceived) where W : IRemotePayload1
+    {
+        StartReceiving(
+            data =>
+            {
+                // jsonからWを生成する
+                var wData = (W)(typeof(A_npanRemote).GetMethod("JsonUtilityTypeResolver").MakeGenericMethod(typeof(W)).Invoke(this, new object[] { data }));
+
+                // deserializeしたデータを受信用のハンドラに投入する
+                try
+                {
+                    onReceived((T)wData.Param0());
+                }
+                catch
+                {
+                    // エラーは無視する。
+                }
+            }
+        );
+    }
+
+    private void SetupEditorConnection2<T, U, W>(Action<T, U> onReceived) where W : IRemotePayload2
+    {
+        StartReceiving(
+            data =>
+            {
+                // jsonからWを生成する
+                var wData = (W)(typeof(A_npanRemote).GetMethod("JsonUtilityTypeResolver").MakeGenericMethod(typeof(W)).Invoke(this, new object[] { data }));
+
+                // deserializeしたデータを受信用のハンドラに投入する
+                try
+                {
+                    onReceived((T)wData.Param0(), (U)wData.Param1());
+                }
+                catch
+                {
+                    // エラーは無視する。
+                }
+            }
+        );
+    }
+
     private void SetupEditorConnection3<T, U, V, W>(Action<T, U, V> onReceived) where W : IRemotePayload3
+    {
+        StartReceiving(
+            data =>
+            {
+                // jsonからWを生成する
+                var wData = (W)(typeof(A_npanRemote).GetMethod("JsonUtilityTypeResolver").MakeGenericMethod(typeof(W)).Invoke(this, new object[] { data }));
+
+                // deserializeしたデータを受信用のハンドラに投入する
+                try
+                {
+                    onReceived((T)wData.Param0(), (U)wData.Param1(), (V)wData.Param2());
+                }
+                catch
+                {
+                    // エラーは無視する。
+                }
+            }
+        );
+    }
+
+    private void StartReceiving(Action<string> onReceived)
     {
         // WS -> updateへのデータの転送を行うチャンネル。
         var chan = Chanquo.MakeChannel<OnUpdatePayload>();
@@ -122,26 +269,12 @@ public class A_npanRemote : IDisposable
                     return;
                 }
 
-                // jsonからWを生成する
-                var wData = (W)(typeof(A_npanRemote).GetMethod("JsonUtilityTypeResolver").MakeGenericMethod(typeof(W)).Invoke(this, new object[] { data.payload }));
-
-                // deserializeしたデータを受信用のハンドラに投入する
-                try
-                {
-                    onReceived((T)wData.T(), (U)wData.U(), (V)wData.V());
-                }
-                catch
-                {
-                    // エラーは無視する。
-                }
+                onReceived(data.payload);
             }
         );
 
-
         var jsonPayload = new OnUpdatePayload();
-
         var fp = new FilePersistence(Application.persistentDataPath);
-
         ws = new WebuSocket(
             "ws://" + "127.0.0.1" + ":1129",
             10240,

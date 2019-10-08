@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 
@@ -17,7 +16,6 @@ public class HandInput
     [SerializeField] public VRTransform trans;
 }
 
-[Serializable]
 
 public class VRTrackingPayload : IRemotePayload3
 {
@@ -25,33 +23,22 @@ public class VRTrackingPayload : IRemotePayload3
     [SerializeField] public HandInput leftHand;
     [SerializeField] public HandInput rightHand;
 
-    public VRTrackingPayload(VRTransform headCamera, HandInput leftHand, HandInput rightHand)
+    public object Param0()
     {
-        this.headCamera = headCamera;
-        this.leftHand = leftHand;
-        this.rightHand = rightHand;
+        return headCamera;
     }
 
-    public void Show()
+    public object Param1()
     {
-        throw new NotImplementedException();
+        return leftHand;
     }
 
-    public object T()
+    public object Param2()
     {
-        throw new NotImplementedException();
-    }
-
-    public object U()
-    {
-        throw new NotImplementedException();
-    }
-
-    public object V()
-    {
-        throw new NotImplementedException();
+        return rightHand;
     }
 }
+
 
 public class VRTrackingSample : MonoBehaviour
 {
@@ -68,30 +55,24 @@ public class VRTrackingSample : MonoBehaviour
         vrTracking = go.AddComponent<VRTracking>();
         vrTracking.StartTracking(
             new GameObject[] { cubeHead, cubeLeftHand, cubeRightHand },
-            data =>
+            (head, leftHand, rightHand) =>
             {
-                OnTrackingMove(data);
+                OnTrackingMove(head, leftHand, rightHand);
             }
         );
 
         yield return new WaitForSeconds(1);
-        Debug.Log("封印中");
-        // A_npanRemote.Setup<VRTrackingPayload>(
-        //     "192.168.11.17",
-        //     data =>
-        //     {
-        //         OnTrackingMove(data);
-        //     }
-        // );
+
+        A_npanRemote.Setup<VRTransform, HandInput, HandInput, VRTrackingPayload>(
+            "192.168.11.17",
+            ref vrTracking.OnTracking,
+            OnTrackingMove
+        );
     }
 
-    private void OnTrackingMove(VRTrackingPayload update)
+    private void OnTrackingMove(VRTransform head, HandInput leftHand, HandInput rightHand)
     {
-        // ここで適当にキューブを動かそう。
-        var head = update.headCamera;
-        var leftHand = update.leftHand;
-        var rightHand = update.rightHand;
-
+        Debug.Log("here! update head.pos:" + head.rot + " l pos:" + leftHand.trans.pos + " r pos:" + rightHand.trans.pos);
         cubeHead.transform.position = head.pos;
         cubeLeftHand.transform.position = leftHand.trans.pos;
         cubeRightHand.transform.position = rightHand.trans.pos;

@@ -1,6 +1,19 @@
+public interface IRemotePayload0 { }
+
+public interface IRemotePayload1
+{
+    object Param0();
+}
+
+public interface IRemotePayload2
+{
+    object Param0();
+    object Param1();
+}
+
 public interface IRemotePayload3
 {
-    object T();
-    object U();
-    object V();
+    object Param0();
+    object Param1();
+    object Param2();
 }

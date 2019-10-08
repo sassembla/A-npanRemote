@@ -22,17 +22,17 @@ public class FaceTrackingPayload : IRemotePayload3
         this.cameraRot = cameraRot;
     }
 
-    public object T()
+    public object Param0()
     {
         return this.facePosAndRot;
     }
 
-    public object U()
+    public object Param1()
     {
         return GenerateFaceBlendShapeDict();
     }
 
-    public object V()
+    public object Param2()
     {
         return this.cameraRot;
     }

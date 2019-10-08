@@ -4,13 +4,16 @@ using UnityEngine;
 
 public class VRTracking : MonoBehaviour, IDisposable
 {
-    public void StartTracking(GameObject[] cameraLeftAndRight, Action<VRTrackingPayload> update)
+    public Action<VRTransform, HandInput, HandInput> OnTracking;
+    public void StartTracking(GameObject[] cameraLeftAndRight, Action<VRTransform, HandInput, HandInput> update)
     {
+        this.OnTracking = update;
+
         // 取得を開始する = タイミングタイミングでOnDataを叩く。
         StartCoroutine(OnUpdate(cameraLeftAndRight, update));
     }
 
-    private IEnumerator OnUpdate(GameObject[] cameraLeftAndRight, Action<VRTrackingPayload> update)
+    private IEnumerator OnUpdate(GameObject[] cameraLeftAndRight, Action<VRTransform, HandInput, HandInput> update)
     {
         while (true)
         {
@@ -35,7 +38,8 @@ public class VRTracking : MonoBehaviour, IDisposable
                     rot = cameraLeftAndRight[2].transform.rotation,
                 }
             };
-            update(new VRTrackingPayload(headCamera, leftHand, rightHand));
+
+            update(headCamera, leftHand, rightHand);
             yield return null;
         }
     }
