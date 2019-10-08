@@ -1,4 +1,4 @@
-public interface IRemotePayload
+public interface IRemotePayload3
 {
     object T();
     object U();

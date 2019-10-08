@@ -7,7 +7,7 @@ using UnityEngine;
 
 // A_npanRemoteが使うためのデータ構造。
 [Serializable]
-public class FaceTrackingPayload : IRemotePayload
+public class FaceTrackingPayload : IRemotePayload3
 {
     [SerializeField] public PosAndRot facePosAndRot;
     [SerializeField] public string[] keys;
@@ -102,17 +102,9 @@ public class ARFaceTrackingSample : MonoBehaviour
         );
 
         // このブロックは REMOTE ScriptingDefineSymbol を消したら自動的に消える。
-        /*
-            めちゃくちゃ外側で頑張ってる。
-            引数を渡すと、
-         */
         A_npanRemote.Setup<PosAndRot, Dictionary<string, float>, Quaternion, FaceTrackingPayload>(
             ipText,
             ref fTrack.OnTrackingUpdate,
-            (t, u, v) =>
-            {
-                return new FaceTrackingPayload(t, u, v);
-            },
             OnFaceTrackingDataReceived
         );
     }

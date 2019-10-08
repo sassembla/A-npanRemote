@@ -19,7 +19,7 @@ public class HandInput
 
 [Serializable]
 
-public class VRTrackingPayload : IRemotePayload
+public class VRTrackingPayload : IRemotePayload3
 {
     [SerializeField] public VRTransform headCamera;
     [SerializeField] public HandInput leftHand;
@@ -30,6 +30,11 @@ public class VRTrackingPayload : IRemotePayload
         this.headCamera = headCamera;
         this.leftHand = leftHand;
         this.rightHand = rightHand;
+    }
+
+    public void Show()
+    {
+        throw new NotImplementedException();
     }
 
     public object T()
