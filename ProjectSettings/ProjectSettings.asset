@@ -605,6 +605,7 @@ PlayerSettings:
   webGLWasmStreaming: 0
   scriptingDefineSymbols:
     4: REMOTE
+    7: REMOTE
   platformArchitecture: {}
   scriptingBackend:
     Android: 1

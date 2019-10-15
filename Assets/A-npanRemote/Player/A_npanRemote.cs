@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using ChanquoCore;
 using UnityEngine;
 using WebuSocketCore;
 using AutoyaFramework.Persistence.Files;
+using Chanquo.v2;
 
 public class A_npanRemote : IDisposable
 {
@@ -187,7 +187,7 @@ public class A_npanRemote : IDisposable
         );
     }
 
-    private class OnUpdatePayload : IChanquoBase
+    private struct OnUpdatePayload
     {
         public string payload;
     }
@@ -258,10 +258,10 @@ public class A_npanRemote : IDisposable
     private void StartReceiving(Action<string> onReceived)
     {
         // WS -> updateへのデータの転送を行うチャンネル。
-        var chan = Chanquo.MakeChannel<OnUpdatePayload>();
+        var chan = Chan<OnUpdatePayload>.Make();
 
         // updateでデータを受け取るブロック。
-        Chanquo.Select<OnUpdatePayload>(
+        chan.Receive(
             (data, ok) =>
             {
                 if (!ok)
@@ -273,7 +273,6 @@ public class A_npanRemote : IDisposable
             }
         );
 
-        var jsonPayload = new OnUpdatePayload();
         var fp = new FilePersistence(Application.persistentDataPath);
         ws = new WebuSocket(
             "ws://" + "127.0.0.1" + ":1129",
@@ -310,6 +309,7 @@ public class A_npanRemote : IDisposable
                     Buffer.BlockCopy(data.Array, data.Offset, bytes, 0, data.Count);
 
                     // updateブロックへと転送する
+                    var jsonPayload = new OnUpdatePayload();
                     jsonPayload.payload = Encoding.UTF8.GetString(bytes);
                     chan.Send(jsonPayload);
                 }
@@ -347,6 +347,7 @@ public class A_npanRemote : IDisposable
             {
                 // 切断を行う
                 ws?.Disconnect();
+                Channels.Close<OnUpdatePayload>();
             }
 
             // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
