@@ -70,6 +70,17 @@ class VRTracking
     }
     ...
 }
+
+// usage
+var vrTrack = new VRTracking();
+vrTrack.StartTracking(
+    objects,
+    (head, leftHand, rightHand) =>
+    {
+        // on update vr tracking.
+    }
+);
+
 ```
 
 step is below.
@@ -140,9 +151,9 @@ class VRTracking
 ```csharp
 var ip = "Unity Editor IP(x.x.x.x)";
 
-// init facetracking.
 var vrTrack = new VRTracking();
 vrTrack.StartTracking(
+    objects,
     (head, leftHand, rightHand) =>
     {
         // on update vr tracking.
@@ -161,9 +172,10 @@ A_npanRemote.Setup<VRTransform, HandInput, HandInput, VRTrackingPayload>(
 ```
 
 
-4. define "REMOTE" scriptingDefineSymbol for remote tracking!
+4. define "REMOTE" scriptingDefineSymbol for remote tracking
+A-npanRemote runs when "REMOTE" symbol is set.
 
-it's done! streaming vr tracking data will reaches your Unity Editor.
+it's done! vr tracking data from OculusQuest will reaches your UnityEditor.
 
 
 ## license
