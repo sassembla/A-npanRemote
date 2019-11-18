@@ -38,7 +38,7 @@ A_npanRemote.Setup<Matrix4x4, Dictionary<string, float>, Quaternion, FaceTrackin
 );
 ```
 
-2. run iOS test app with A-npanRemote and input UnityEditor IP.
+2. run iOS test app with A-npanRemote and input Unity Editor IP.
 3. run same apps on UnityEditor too.
 
 so now you can receive Face tracking data on your Unity Editor from the iOS device.
@@ -60,9 +60,9 @@ class VRTracking
     public void StartTracking(
         GameObject[] cameraLeftAndRight, 
         Action<
-            VRTransform, // 頭の位置と回転
-            HandInput, // 左手の位置、回転、各種トリガー
-            HandInput // 右手の位置、回転、各種トリガー
+            VRTransform, // head position and rotation
+            HandInput, // left hand position and rotation and triggers
+            HandInput // right hand position and rotation and triggers
         > update)
     {
         // start tracking.
@@ -130,9 +130,9 @@ class VRTracking
     public void StartTracking(
         GameObject[] cameraLeftAndRight, 
         Action<
-            VRTransform, // 頭の位置と回転
-            HandInput, // 左手の位置、回転、各種トリガー
-            HandInput // 右手の位置、回転、各種トリガー
+            VRTransform, // head position and rotation
+            HandInput, // left hand position and rotation and triggers
+            HandInput // right hand position and rotation and triggers
         > update)
     {
         // set OnTracking method.
