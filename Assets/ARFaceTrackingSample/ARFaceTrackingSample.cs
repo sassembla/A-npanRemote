@@ -70,25 +70,6 @@ public class ARFaceTrackingSample : MonoBehaviour
         var ipText = textHolder.text;
         var fTrack = new ARFaceTracking();
 
-
-        /*
-            実機からエディタは、データを送り出す
-            エディタは実機からのデータを受け取って動作する
-
-            同じ関数へと送り出せればOKで、実機のみ、さらに転送する責務を負う。
-
-            このパターンはなんだろうな、、、、
-            
-            理想形は、
-            ・実機側はトラッキングを開始したら勝手にエディタへとデータが送られる
-            ・エディタ側はトラッキングを開始したらデータを受け取る
-
-            前者が大変なんだよな。一つの出力を2つに、自然に増やすのを求められてる。
-            取り出せればいけるな
-         */
-
-
-
         // 普通に開始させる
         fTrack.StartTracking(
             () =>
@@ -104,8 +85,7 @@ public class ARFaceTrackingSample : MonoBehaviour
         // このブロックは REMOTE ScriptingDefineSymbol を消したら自動的に消える。
         A_npanRemote.Setup<PosAndRot, Dictionary<string, float>, Quaternion, FaceTrackingPayload>(
             ipText,
-            ref fTrack.OnTrackingUpdate,
-            OnFaceTrackingDataReceived
+            ref fTrack.OnTrackingUpdate
         );
     }
 

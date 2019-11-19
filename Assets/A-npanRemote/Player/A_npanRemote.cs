@@ -54,15 +54,15 @@ public class A_npanRemote : IDisposable
     }
 
     [System.Diagnostics.Conditional("REMOTE")]
-    public static void Setup<P0, P1, P2, PayloadType>(string ip, ref Action<P0, P1, P2> onSend, Action<P0, P1, P2> onReceived) where PayloadType : IRemotePayload3
+    public static void Setup<P0, P1, P2, PayloadType>(string ip, ref Action<P0, P1, P2> onSend) where PayloadType : IRemotePayload3
     {
         _this = new A_npanRemote();
 #if UNITY_EDITOR
         // エディタの場合、セットアップと受け取り時の処理のセットアップを行う。
-        _this.SetupEditorConnection3<P0, P1, P2, PayloadType>(onReceived);
+        _this.SetupEditorConnection3<P0, P1, P2, PayloadType>(onSend);
 #else
         // エディタ以外であれば、特定のIPへと接続を行う。
-        _this.SetupRemoteConnection3<P0, P1, P2, PayloadType>(ip, ref onSend, onReceived);
+        _this.SetupRemoteConnection3<P0, P1, P2, PayloadType>(ip, ref onSend);
 #endif
     }
 
@@ -129,7 +129,7 @@ public class A_npanRemote : IDisposable
     }
 
 
-    private void SetupRemoteConnection3<T, U, V, W>(string ip, ref Action<T, U, V> onData, Action<T, U, V> onReceived) where W : IRemotePayload3
+    private void SetupRemoteConnection3<T, U, V, W>(string ip, ref Action<T, U, V> onData) where W : IRemotePayload3
     {
         // onDataの書き換えを行う
         onData = (t, u, v) =>
@@ -148,7 +148,6 @@ public class A_npanRemote : IDisposable
                     Debug.LogError("e:" + e);
                 }
             }
-            onReceived(t, u, v);
         };
 
         StartConnect(ip);

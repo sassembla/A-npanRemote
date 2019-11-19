@@ -65,8 +65,7 @@ public class VRTrackingSample : MonoBehaviour
 
         A_npanRemote.Setup<VRTransform, HandInput, HandInput, VRTrackingPayload>(
             "192.168.11.17",
-            ref vrTracking.OnTracking,
-            OnTrackingMove
+            ref vrTracking.OnTracking
         );
     }
 
