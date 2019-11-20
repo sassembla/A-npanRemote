@@ -23,6 +23,12 @@ public class VRTrackingPayload : IRemotePayload3
     [SerializeField] public HandInput leftHand;
     [SerializeField] public HandInput rightHand;
 
+    public VRTrackingPayload(VRTransform headCamera, HandInput leftHand, HandInput rightHand) {
+        this.headCamera = headCamera;
+        this.leftHand = leftHand;
+        this.rightHand = rightHand;
+    }
+
     public object Param0()
     {
         return headCamera;

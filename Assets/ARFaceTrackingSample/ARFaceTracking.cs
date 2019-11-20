@@ -58,11 +58,11 @@ public class ARFaceTracking : IDisposable
         UnityARSessionNativeInterface.ARFrameUpdatedEvent += FrameUpdated;
     }
 
-    public Action<PosAndRot, Dictionary<string, float>, Quaternion> OnTrackingUpdate;
+    public Action<Matrix4x4, Dictionary<string, float>, Quaternion> OnTrackingUpdate;
 
     public void StartTracking(
         Action onStartTracking,
-        Action<PosAndRot, Dictionary<string, float>, Quaternion> onTrackingUpdate
+        Action<Matrix4x4, Dictionary<string, float>, Quaternion> onTrackingUpdate
     )
     {
         _this = this;
@@ -78,13 +78,11 @@ public class ARFaceTracking : IDisposable
             // added, update時に実行される関数をセット
             _faceAdded = p =>
             {
-                var posAndRot = new PosAndRot(p.transform);
-                OnTrackingUpdate(posAndRot, p.blendShapes, GetCameraRot());
+                OnTrackingUpdate(p.transform, p.blendShapes, GetCameraRot());
             };
             _faceUpdated = p =>
             {
-                var posAndRot = new PosAndRot(p.transform);
-                OnTrackingUpdate(posAndRot, p.blendShapes, GetCameraRot());
+                OnTrackingUpdate(p.transform, p.blendShapes, GetCameraRot());
             };
             _faceRemoved = p => { };
         };

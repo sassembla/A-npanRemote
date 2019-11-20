@@ -28,28 +28,28 @@ public class A_npanRemote : IDisposable
 
 
     [System.Diagnostics.Conditional("REMOTE")]
-    public static void Setup<P0, PayloadType>(string ip, ref Action<P0> onSend, Action<P0> onReceived) where PayloadType : IRemotePayload1
+    public static void Setup<P0, PayloadType>(string ip, ref Action<P0> onSend) where PayloadType : IRemotePayload1
     {
         _this = new A_npanRemote();
 #if UNITY_EDITOR
         // エディタの場合、セットアップと受け取り時の処理のセットアップを行う。
-        _this.SetupEditorConnection1<P0, PayloadType>(onReceived);
+        _this.SetupEditorConnection1<P0, PayloadType>(onSend);
 #else
         // エディタ以外であれば、特定のIPへと接続を行う。
-        _this.SetupRemoteConnection1<P0, PayloadType>(ip, ref onSend, onReceived);
+        _this.SetupRemoteConnection1<P0, PayloadType>(ip, ref onSend);
 #endif
     }
 
     [System.Diagnostics.Conditional("REMOTE")]
-    public static void Setup<P0, P1, PayloadType>(string ip, ref Action<P0, P1> onSend, Action<P0, P1> onReceived) where PayloadType : IRemotePayload2
+    public static void Setup<P0, P1, PayloadType>(string ip, ref Action<P0, P1> onSend) where PayloadType : IRemotePayload2
     {
         _this = new A_npanRemote();
 #if UNITY_EDITOR
         // エディタの場合、セットアップと受け取り時の処理のセットアップを行う。
-        _this.SetupEditorConnection2<P0, P1, PayloadType>(onReceived);
+        _this.SetupEditorConnection2<P0, P1, PayloadType>(onSend);
 #else
         // エディタ以外であれば、特定のIPへと接続を行う。
-        _this.SetupRemoteConnection2<P0, P1, PayloadType>(ip, ref onSend, onReceived);
+        _this.SetupRemoteConnection2<P0, P1, PayloadType>(ip, ref onSend);
 #endif
     }
 
@@ -78,7 +78,7 @@ public class A_npanRemote : IDisposable
 
 
 
-    private void SetupRemoteConnection1<T, W>(string ip, ref Action<T> onData, Action<T> onReceived) where W : IRemotePayload1
+    private void SetupRemoteConnection1<T, W>(string ip, ref Action<T> onData) where W : IRemotePayload1
     {
         // onDataの書き換えを行う
         onData = (t) =>
@@ -97,13 +97,12 @@ public class A_npanRemote : IDisposable
                     Debug.LogError("e:" + e);
                 }
             }
-            onReceived(t);
         };
 
         StartConnect(ip);
     }
 
-    private void SetupRemoteConnection2<T, U, W>(string ip, ref Action<T, U> onData, Action<T, U> onReceived) where W : IRemotePayload2
+    private void SetupRemoteConnection2<T, U, W>(string ip, ref Action<T, U> onData) where W : IRemotePayload2
     {
         // onDataの書き換えを行う
         onData = (t, u) =>
@@ -122,7 +121,6 @@ public class A_npanRemote : IDisposable
                     Debug.LogError("e:" + e);
                 }
             }
-            onReceived(t, u);
         };
 
         StartConnect(ip);

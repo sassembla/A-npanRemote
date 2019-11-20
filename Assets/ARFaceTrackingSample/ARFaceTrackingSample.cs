@@ -7,14 +7,14 @@ using UnityEngine;
 
 // A_npanRemoteが使うためのデータ構造。
 [Serializable]
-public class FaceTrackingPayload : IRemotePayload3
+public class FTPayload : IRemotePayload3
 {
-    [SerializeField] public PosAndRot facePosAndRot;
+    [SerializeField] public Matrix4x4 facePosAndRot;
     [SerializeField] public string[] keys;
     [SerializeField] public float[] values;
     [SerializeField] public Quaternion cameraRot;
 
-    public FaceTrackingPayload(PosAndRot facePosAndRot, Dictionary<string, float> faceBlendShapes, Quaternion cameraRot)
+    public FTPayload(Matrix4x4 facePosAndRot, Dictionary<string, float> faceBlendShapes, Quaternion cameraRot)
     {
         this.facePosAndRot = facePosAndRot;
         this.keys = faceBlendShapes.Keys.ToArray();
@@ -70,20 +70,19 @@ public class ARFaceTrackingSample : MonoBehaviour
         var ipText = textHolder.text;
         var fTrack = new ARFaceTracking();
 
-        // 普通に開始させる
+        // 普通に顔認識(FaceTracking)を開始させる
         fTrack.StartTracking(
             () =>
             {
-                Debug.Log("start face tracking.");
+                // 顔認識開始 
             },
-            (facePosAndRot, faceBlendShapes, cameraRot) =>
+            (Matrix4x4 facePosAndRot, Dictionary<string, float> faceBlendShapes, Quaternion cameraRot) =>
             {
-                OnFaceTrackingDataReceived(facePosAndRot, faceBlendShapes, cameraRot);
+                // 顔認識のUpdate
             }
         );
 
-        // このブロックは REMOTE ScriptingDefineSymbol を消したら自動的に消える。
-        A_npanRemote.Setup<PosAndRot, Dictionary<string, float>, Quaternion, FaceTrackingPayload>(
+        A_npanRemote.Setup<Matrix4x4, Dictionary<string, float>, Quaternion, FTPayload>(
             ipText,
             ref fTrack.OnTrackingUpdate
         );

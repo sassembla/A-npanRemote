@@ -26,15 +26,11 @@ fTrack.StartTracking(
     }
 );
 
-// 
+// add A_npanRemote setup method.
 // these block will be disappeared when "REMOTE" scriptingDefineSymbol is removed. 
 A_npanRemote.Setup<Matrix4x4, Dictionary<string, float>, Quaternion, FaceTrackingPayload>(
     validInput,
-    ref fTrack.OnUpdate,
-    (faceMat4x4, faceBlendShapes, cameraRot) =>
-    {
-        // on update face tracking.
-    }
+    ref fTrack.OnUpdate
 );
 ```
 
@@ -163,16 +159,13 @@ vrTrack.StartTracking(
 // setup A-npanRemote.
 A_npanRemote.Setup<VRTransform, HandInput, HandInput, VRTrackingPayload>(
     ip,
-    ref vrTrack.OnUpdate,// set reference of exposed Update method.
-    (head, leftHand, rightHand) =>
-    {
-        // on update vr tracking.
-    }
+    ref vrTrack.OnUpdate// set reference of exposed Update method.
 );
 ```
 
 
 4. define "REMOTE" scriptingDefineSymbol for remote tracking
+
 A-npanRemote runs when "REMOTE" symbol is set.
 
 it's done! vr tracking data from OculusQuest will reaches your UnityEditor.
