@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
@@ -52,7 +53,7 @@ public class ARFaceTrackingSample : MonoBehaviour
 {
     private ARFaceTracking arFaceTracking;
 
-    public void Start()
+    public IEnumerator Start()
     {
         // 過去に接続に成功した記録があれば、UIに入れる。
         var oldIp = string.Empty;
@@ -63,6 +64,33 @@ public class ARFaceTrackingSample : MonoBehaviour
             var tmInput = GameObject.Find("InputField (TMP)").GetComponent<TMP_InputField>();
             tmInput.text = oldIp;
         }
+
+#if UNITY_EDITOR
+
+        // Editorサーバが起動するまで1秒待つ
+        yield return new WaitForSeconds(1);
+
+        var fTrack = new ARFaceTracking();
+
+        // 普通に顔認識(FaceTracking)を開始させる
+        fTrack.StartTracking(
+            () =>
+            {
+                // 顔認識開始 
+            },
+            (Matrix4x4 facePosAndRot, Dictionary<string, float> faceBlendShapes, Quaternion cameraRot) =>
+            {
+                // 顔認識のUpdate
+                OnFaceTrackingDataReceived(facePosAndRot, faceBlendShapes, cameraRot);
+            }
+        );
+
+        A_npanRemote.Setup<Matrix4x4, Dictionary<string, float>, Quaternion, FTPayload>(
+            string.Empty,
+            ref fTrack.OnTrackingUpdate
+        );
+#endif
+        yield break;
     }
 
     public void Connect(TMP_InputField textHolder)
@@ -88,7 +116,7 @@ public class ARFaceTrackingSample : MonoBehaviour
         );
     }
 
-    private void OnFaceTrackingDataReceived(PosAndRot facePosAndRot, Dictionary<string, float> faceBlendShapes, Quaternion cameraRot)
+    private void OnFaceTrackingDataReceived(Matrix4x4 facePosAndRot, Dictionary<string, float> faceBlendShapes, Quaternion cameraRot)
     {
         Debug.Log("face data received. facePosAndRot:" + facePosAndRot + " cameraRot:" + cameraRot);
     }

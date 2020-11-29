@@ -5,6 +5,10 @@ using UnityEngine;
 using WebuSocketCore;
 using AutoyaFramework.Persistence.Files;
 using Chanquo.v2;
+using System.Net;
+using System.Net.Sockets;
+using Net.Codecrete.QrCodeGenerator;
+using UnityEngine.UI;
 
 public class A_npanRemote : IDisposable
 {
@@ -254,6 +258,8 @@ public class A_npanRemote : IDisposable
 
     private void StartReceiving(Action<string> onReceived)
     {
+        ShowEditorLocalIP();
+
         // WS -> updateへのデータの転送を行うチャンネル。
         var chan = Chan<OnUpdatePayload>.Make();
 
@@ -329,6 +335,52 @@ public class A_npanRemote : IDisposable
         return JsonUtility.FromJson<T>(json);
     }
 
+    private void ShowEditorLocalIP()
+    {
+        string getLocalIP()
+        {
+            var host = Dns.GetHostEntry(Dns.GetHostName());
+            foreach (var ip in host.AddressList)
+            {
+                if (ip.AddressFamily == AddressFamily.InterNetwork)
+                {
+                    return ip.ToString();
+                }
+            }
+            throw new Exception("no local ip found.");
+        }
+
+        // ローカルIPを取得
+        var localIp = getLocalIP();
+
+        // qrコードを生成する
+        var qr = QrCode.EncodeText(localIp, QrCode.Ecc.Medium);
+        var (bits, w, h) = qr.ToBitPattern();// デフォサイズが441, 21x21、これが仕様上最小
+
+        // テクスチャにポイントを描く。
+        var drawTexture = new Texture2D(w, h, TextureFormat.RGBA32, false);
+        drawTexture.filterMode = FilterMode.Point;
+
+        for (var i = 0; i < w * h; i++)
+        {
+            var isOn = bits[i];
+            if (isOn)
+            {
+                var x = i / w;
+                var y = i % h;
+                drawTexture.SetPixels(x, y, 1, 1, new Color[] { Color.black }, 0);
+            }
+        }
+
+        drawTexture.Apply();
+
+        // キャンバス右上にQRコードを出す
+        var canvasResourcePrefab = Resources.Load("a-npanResource/a-npanQRCanvas") as GameObject;
+        var canvasObj = GameObject.Instantiate(canvasResourcePrefab);
+
+        var image = canvasObj.transform.GetChild(0).GetComponent<Image>();
+        image.sprite = Sprite.Create(drawTexture, new Rect(0, 0, drawTexture.width, drawTexture.height), Vector2.zero);
+    }
 
 
 
